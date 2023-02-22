@@ -9,7 +9,7 @@ This folder contains the files of pure data. There's raw unmanipulated data from
 This folder contains the scripts created to read in mechanical data, i.e. accelerometer and IMU data.
 
 ### DataManipulation
-This folder contains the scripts created to manipulate the data. For info on what steps have been done, see [a relative link](DataManipulationSteps.md).
+This folder contains the scripts created to manipulate the data. For info on what steps have been done, see the [DataManipulation markdown](DataManipulationSteps.md).
 
 ### DataVisualisation
 This folder contains the scripts created to visualise the data (both raw and manipulated). 

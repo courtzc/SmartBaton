@@ -1,13 +1,21 @@
+% Resample Saved Cycles
 
-datafiles = ["ExpA1_003_SavedCycle_1.mat", "ExpA1_004_SavedCycle_3.mat", "ExpA1_005_SavedCycle_5.mat", "ExpA1_003_SavedCycle_2.mat", "ExpA1_004_SavedCycle_4.mat", "ExpA1_006_SavedCycle_1.mat", "ExpA1_003_SavedCycle_3.mat", "ExpA1_004_SavedCycle_5.mat", "ExpA1_006_SavedCycle_2.mat", "ExpA1_003_SavedCycle_4.mat", "ExpA1_005_SavedCycle_1.mat", "ExpA1_006_SavedCycle_3.mat", "ExpA1_003_SavedCycle_5.mat", "ExpA1_005_SavedCycle_2.mat", "ExpA1_006_SavedCycle_4.mat", "ExpA1_004_SavedCycle_1.mat", "ExpA1_005_SavedCycle_3.mat", "ExpA1_006_SavedCycle_5.mat", "ExpA1_004_SavedCycle_2.mat", "ExpA1_005_SavedCycle_4.mat"]; 
+% Get all files of the jth feature
+miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
+    "Data\Session01_ManipulatedData\SavedCycles\*.mat";
 
-% do for every file in datafiles
-for k = 1:length(datafiles)
+% collect the files
+theFiles = dir(miniPattern);
+
+
+% do for every file in the files
+for k = 1:length(theFiles)
    
     % read in cycle from file
-    currFileName = datafiles(k);
+    currFileName = theFiles(k).name;
+    withFolders = "Data\Session01_ManipulatedData\SavedCycles\"+currFileName;
     fprintf(1, 'Now reading %s\n', currFileName)
-    cycle = load(currFileName).tXYZ;
+    cycle = load(withFolders).tXYZ;
 
     % start the time index from zero
     cycle(:,1) = [cycle(:,1)]-cycle(1,1);
@@ -35,14 +43,10 @@ for k = 1:length(datafiles)
     
 
     % concatenate new data
-    tXYZ = [t; X; Y; Z];
-    
-    % optional plot
-%     figure
-%     plot(X, Y, '.')
+    tXYZ = [t, X, Y, Z];
     
     % save new data
-    fileName = sprintf("%s_Resampled.mat",currFileName);
-                save(fileName, 'tXYZ');
+    fileName = sprintf("%s_Resampled.mat", currFileName(1:end-4));
+    save(fileName, 'tXYZ');
 
 end

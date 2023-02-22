@@ -1,16 +1,21 @@
 % initialise GUID controller
 myGuidController = GUID_Controller;
 
-close all
+
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
     "Data\Session01_ManipulatedData\*.mat";
     
 % collect the files
 theFiles = dir(miniPattern);
-
-% initialise 
-figureSaveTitles = cell(1,length(theFiles));
     
+% 
+% 
+% % read in the file
+% % fprintf(1, 'Now reading %s\n', baseFileName);
+% datafiles = ["Session01_ExpA1_003_tXYZ.mat", "Session01_ExpA1_004_tXYZ.mat", "Session01_ExpA1_005_tXYZ.mat", "Session01_ExpA1_006_tXYZ.mat"];
+% 
+% disp(datafiles)
+
 
 for k = 1:length(theFiles)
 
@@ -28,7 +33,7 @@ for k = 1:length(theFiles)
 
     %% plot!
     figure
-    sgTitleName = sprintf("Path Feature: Normal; Path Habit: Textbook; Threshold: Time; Dataset: %s", strrep(simpleFileName,'_',' '));
+    sgTitleName = sprintf("Path Feature: Normal; Path Habit: Textbook; Threshold: Time; Dataset: %s", strrep(withFolders,'_',' '));
     sgtitle(sgTitleName)
     
     endOfCycle = false;
@@ -87,35 +92,7 @@ for k = 1:length(theFiles)
         
     end
 
-    % get graph details
-    graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName);
-    
-    % save in GUID directory, get GUID
-    folderToSaveIn = 'Visualisations/Session01_IndividualCyclesTimeThreshold';   % Your destination folder
-    descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
-    GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
-    
-    % add GUID to title 
-    figureSaveTitles{k} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
-
-    % set title
-    sgtitle(strrep(graphDetails, '_', ' '))
-
 end
-
-
-
-% get all open figures
-FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
-
-% save all open figures
-for iFig = 1:length(FigList)
-  FigHandle = FigList(iFig);
-  FigName   = figureSaveTitles{iFig};
-  fprintf("now saving: %s\n", FigName)
-  saveas(FigHandle, fullfile(folderToSaveIn, FigName));
-end
-
 
 function [isEndOfCycle] = checkEndOfCycle(point, barTimeLimitCheck) 
 

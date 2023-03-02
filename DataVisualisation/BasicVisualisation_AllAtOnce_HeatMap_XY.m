@@ -9,6 +9,7 @@ myGuidController = GUID_Controller;
 
 % initialise 
 figureSaveTitles = cell(1,6);
+pngSaveTitles = cell(1,6);
 
 %% colour setup
 % set up the colour range
@@ -95,7 +96,8 @@ for j = 1:6
     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     
     % add GUID to title 
-    figureSaveTitles{j} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
+    figureSaveTitles{j} = sprintf('%s_%s.fig', graphDetails, GUIDToAppend);
+    pngSaveTitles{j} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
     % set title
     sgtitle(strrep(graphDetails, '_', ' '))
@@ -110,6 +112,8 @@ FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
 for iFig = 1:length(FigList)
   FigHandle = FigList(iFig);
   FigName   = figureSaveTitles{iFig};
+  pngName   = pngSaveTitles{iFig};
   fprintf("now saving: %s\n", FigName)
   saveas(FigHandle, fullfile(folderToSaveIn, FigName));
+  saveas(FigHandle, fullfile(folderToSaveIn, pngName));
 end

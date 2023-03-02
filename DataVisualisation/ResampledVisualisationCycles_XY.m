@@ -15,7 +15,7 @@ end
 
 figure;
 hold on;
-title("")
+title("Average 44 path, mf, 60bpm")
 
 % do for every file in the files
 for k = 1:length(theFiles)
@@ -32,6 +32,9 @@ end
 
 
 % get all open figures
+figureSaveTitle = 
+pngSaveTitle = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
+
 FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
 
 % save all open figures

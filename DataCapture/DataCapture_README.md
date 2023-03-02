@@ -25,11 +25,63 @@ follow this guide: https://www.instructables.com/Arduino-WeMos-D1-WiFi-UNO-ESP-8
 (not required) Run WiFiConfigurationArduino.ino to set up wifi connection on the device.
 
 ### troubleshooting
-only one program can read the serial port at a time. try closing the serial monitor in arduino IDE if attempting to access it elsewhere, and vice versa.
+only one program can read the serial port at a time. 
+If going to matlab, close the serial monitor in arduino IDE if attempting to access it elsewhere, and vice versa.
+If going to arduino, run `fclose(instrfindall);` and `delete(instrfindall);` to close and remove the port in matlab.
+    if the ports are already closed, doing this in matlab will give an error. you can just proceed normally if that happens.
 
 ## Matlab
 This only works when reading in the serial output of arduino code. 
 
 Upload the sketch `Read_IMU.ino` to the arduino. (you're going to want to change this to data friendly output)
 
-run Read_IMU.m on the computer. Notes: doesn't plot the right stuff yet. instrfindall will be discontinued soon.
+run Read_IMU.m on the computer. note: instrfindall will be discontinued soon.
+
+# Plotting
+## Input data (serial output)
+each reading needs to end up in this format: 
+`00544.43 -00259.77 -00820.31; 00000.85 00006.11 00004.44; -00032.55 00044.10 00070.20`
+
+which can be achieved by this code in arduino loop:
+
+```
+printFormattedFloat(sensor->accX(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->accY(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->accZ(), 5, 2);
+SERIAL_PORT.print("; ");
+printFormattedFloat(sensor->gyrX(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->gyrY(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->gyrZ(), 5, 2);
+SERIAL_PORT.print("; ");
+printFormattedFloat(sensor->magX(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->magY(), 5, 2);
+SERIAL_PORT.print(" ");
+printFormattedFloat(sensor->magZ(), 5, 2);
+SERIAL_PORT.println();
+```
+
+I'm sure we can play around with the padding later. matlab strips it anyway.
+
+The matlab code in read_imu then uses str2num to turn it into a 3x3 array
+
+```
+out = fscanf(s);
+out_array = str2num(out);
+```
+
+## getting plot vectors 
+we're reading it in as a 3D matrix, where each 'page' (3rd dimension) is a 3x3 matrix of the values. the matrix looks like this:
+```
+IMU_Data (:,:,i) = [accX, accY, accZ;
+                    gyrX, gyrY, gyrZ;
+                    magX, magY, magZ]
+```
+and then goes back however many rows for however many readings we take.
+
+When plotting, we want to get all the accX values, etc etc. to do this, we can take
+IMU_Data (1,1,:) for accX values. However, matlab still treats this as a 3D array which won't work. add `squeeze(IMU_Data(1,1,:))` to get the accX values in a 1D array.   

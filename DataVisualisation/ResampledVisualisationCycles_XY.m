@@ -29,10 +29,19 @@ for k = 1:length(theFiles)
 
 end
 
+% get graph details
+graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName);
 
+% save in GUID directory, get GUID
+folderToSaveIn = 'Visualisations/Session01_IndividualCyclesTimeThreshold';   % Your destination folder
+descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
+GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+
+% set title
+sgtitle(strrep(graphDetails, '_', ' '))
 
 % get all open figures
-figureSaveTitle = 
+figureSaveTitle = sprintf('%s_%s.fig', graphDetails, GUIDToAppend);
 pngSaveTitle = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
 FigList = findobj(allchild(0), 'flat', 'Type', 'figure');

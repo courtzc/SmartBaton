@@ -57,20 +57,22 @@ plot3(squeeze(IMU_data(3,1,:)), squeeze(IMU_data(3,2,:)), squeeze(IMU_data(3,3,:
 
 
 % get graph details
-graphDetails = 'IMU CJMCU-20948 Raw Data Reading - Raw Plots of 100 points of Accel Gyro and Magnometer data separately';
+graphDetails = 'IMU CJMCU-20948 Raw Data Reading - Raw Plots of 100 points of Accel, Gyro, and Magnometer data separately.';
 
 % save in GUID directory, get GUID
 folderToSaveIn = 'Visualisations/IMU_RealRawData';   % Your destination folder
 descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: Arduino Serial Output of IMU CJMCU-20948. File Location: %s. Date Generated: %s", graphDetails, mfilename, folderToSaveIn, datetime('now'));
 GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
 
+% add GUID to title 
+% figureSaveTitles{k} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
 % set title
 sgtitle(strrep(graphDetails, '_', ' '))
 
-% get all open figures, add GUID to file name 
-figureSaveTitle = sprintf('%s_%s.fig', strrep(graphDetails, ' ', '_'), GUIDToAppend);
-pngSaveTitle = sprintf('%s_%s.png', strrep(graphDetails, ' ', '_'), GUIDToAppend);
+% get all open figures
+figureSaveTitle = sprintf('%s_%s.fig', graphDetails, GUIDToAppend);
+pngSaveTitle = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
 FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
 
@@ -78,8 +80,6 @@ FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
 for iFig = 1:length(FigList)
   FigHandle = FigList(iFig);
   FigName   = figureSaveTitle;
-  pngName   = pngSaveTitle;
   fprintf("now saving: %s\n", FigName)
   saveas(FigHandle, fullfile(folderToSaveIn, FigName));
-  saveas(FigHandle, fullfile(folderToSaveIn, pngName));
 end

@@ -11,7 +11,7 @@ This folder contains the files of pure data. There's raw unmanipulated data from
 This folder contains the scripts created to read in mechanical data, i.e. accelerometer and IMU data.
 
 ### DataManipulation
-This folder contains the scripts created to manipulate the data. For info on what steps have been done, see the [DataManipulation markdown](/DataManipulation/DataManipulationSteps.md).
+This folder contains the scripts created to manipulate the data. For info on what steps have been done, see the [DataManipulation markdown](/DataManipulation/DataManipulation_README.md).
 
 ### DataVisualisation
 This folder contains the scripts created to visualise the data (both raw and manipulated).  This system assigns a unique identifier to all visualisations. `GUID_Directory.xlsx` gives a detailed description of each unique visualisation, including things like the dataset, details, and date.

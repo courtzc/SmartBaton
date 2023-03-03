@@ -17,7 +17,7 @@ fopen(s); % open the comm between Arduino and MATLAB
 % read in 100 lines of IMU data
 IMU_data = zeros(3,3,1000);
 i = 1;
-while i < 100
+while i < 1000
     out = fscanf(s);
     disp("------- line of data --------")
     disp("out:")
@@ -36,23 +36,27 @@ fclose(s)
 delete(s)
 
 % plot data
-figure;
+figure('Position', [100 100 1400 420]);
 hold on;
+
 % sgtitle("IMU Data Reading - Raw Plots")
 
 subplot(1,3,1)
 hold on;
 title("IMU Data - Accelerometer")
+view(-37.5, 30)
 plot3(squeeze(IMU_data(1,1,:)), squeeze(IMU_data(1,2,:)), squeeze(IMU_data(1,3,:)))
 
 subplot(1,3,2)
 hold on;
 title("IMU Data - Gyrometer")
+view(-37.5, 30)
 plot3(squeeze(IMU_data(2,1,:)), squeeze(IMU_data(2,2,:)), squeeze(IMU_data(2,3,:)))
 
 subplot(1,3,3)
 hold on;
 title("IMU Data - Magnometer")
+view(-37.5, 30)
 plot3(squeeze(IMU_data(3,1,:)), squeeze(IMU_data(3,2,:)), squeeze(IMU_data(3,3,:)))
 
 

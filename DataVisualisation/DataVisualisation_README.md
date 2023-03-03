@@ -1,5 +1,5 @@
 ## Data Viz GUID System
-For everything that's making a visualisation: 
+To use the GUID system, add this stuff to everything that's making a visualisation.
 
 1. Add this to the top of the file:
 ```

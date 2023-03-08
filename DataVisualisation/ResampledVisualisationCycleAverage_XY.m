@@ -3,7 +3,7 @@ myGuidController = GUID_Controller;
 
 close all
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session01_ManipulatedData\SavedCycles_Resampled\Session01_ExpA1_All*.mat";
+    "Data\Session01_ManipulatedData\SavedCycles_Resampled\Session01_ExpA1_0*Resampled.mat";
     
 % collect the files
 theFiles = dir(miniPattern);
@@ -27,7 +27,7 @@ for k = 1:length(theFiles)
     withFolders = "Data\Session01_ManipulatedData\SavedCycles_Resampled\"+simpleFileName;
     fprintf('Now reading %s\n', withFolders)
     clear tXYZ;
-    tXYZ = load(withFolders).tXYZ_Average;
+    tXYZ = load(withFolders).tXYZ;
 
 
    
@@ -44,7 +44,9 @@ for k = 1:length(theFiles)
 
 
     % get graph details
-    graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName);
+    disp(simpleFileName)
+    fprintf("sliced: %s\n", simpleFileName(1:end-4))
+    graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName(1:end-4));
     
     % save in GUID directory, get GUID
     folderToSaveIn = 'Visualisations/Session01_Resampled_Average_Figures';   % Your destination folder

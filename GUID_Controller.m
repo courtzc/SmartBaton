@@ -31,7 +31,7 @@ classdef GUID_Controller
             fclose(fid);
         end
 
-        function controllerFunc = saveFigures(graphDetails, GUIDToAppend, FigList, folderToSaveIn)
+        function controllerFunc = saveFigures(obj, graphDetails, GUIDToAppend, FigList, folderToSaveIn)
             
             disp("Fig List:")
             disp(FigList)

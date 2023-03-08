@@ -2,7 +2,8 @@ batonTipData = load('DataManipulation\BatonTipPose_08_03_23.mat').batonTipData;
 myGuidController = GUID_Controller;
 close all;
 % plot the baton tip pose
-    
+basepoint = [0,0,0];
+
 figure;
 hold on;
 view(-37.5, 30)
@@ -12,7 +13,7 @@ plot3(squeeze(batonTipData(1,1,:)), squeeze(batonTipData(2,1,:)), squeeze(batonT
 
 
 % get graph details
-graphDetails = 'Baton Tip Pose Transformation. IMU CJMCU-20948 Data Reading, Fused with imufilter, transformed with BatonTip_Transformation';
+graphDetails = 'Baton Tip Pose Transformation - IMU CJMCU-20948 Data Reading - Fused with imufilter - transformed with BatonTip_Transformation';
 dataset = "IMU data: IMU_Orientation_Reading_08_03_23. Transformed Baton tip data: BatonTipPose_08_03_23.";
 folderToSaveIn = 'Visualisations/IMU_TransformedBatonTipPose';   % Your destination folder
 

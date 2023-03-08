@@ -30,6 +30,26 @@ classdef GUID_Controller
             fprintf(fid,'%06d',GUID);
             fclose(fid);
         end
+
+        function controllerFunc = saveFigures(graphDetails, GUIDToAppend, FigList, folderToSaveIn)
+            
+            disp("Fig List:")
+            disp(FigList)
+            % get all open figures, add GUID to file name 
+            figureSaveTitle = sprintf('%s_%s.fig', strrep(graphDetails, ' ', '_'), GUIDToAppend);
+            pngSaveTitle = sprintf('%s_%s.png', strrep(graphDetails, ' ', '_'), GUIDToAppend);
+            
+            
+            % save all open figures
+            for iFig = 1:length(FigList)
+              FigHandle = FigList(iFig);
+              FigName   = figureSaveTitle;
+              pngName   = pngSaveTitle;
+              fprintf("now saving: %s\n", FigName)
+              saveas(FigHandle, fullfile(folderToSaveIn, FigName));
+              saveas(FigHandle, fullfile(folderToSaveIn, pngName));
+            end
+        end
         
     end
 end

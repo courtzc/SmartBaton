@@ -88,6 +88,22 @@ IMU_Data (1,1,:) for accX values. However, matlab still treats this as a 3D arra
 
 
 # Leap Setup
+
+Download tracking software: https://developer.leapmotion.com/
 The leap sdk downloads in ProgramFiles when you download the Windows latest leap.
 
 Go to `C:\Program Files\Ultraleap\ControlPanel\UnityApp` and open `Ultraleap Control Panel.exe` to see the UI interface.
+
+
+for code:
+make an empty C++ project
+add a .c file (you won't be able to do the next step til you do)
+
+do this twice, once for debug and once for release:
+follow these instructions (https://developer-archive.leapmotion.com/documentation/cpp/devguide/Project_Setup.html) to
+- add the SDK include folder `C:\Program Files\Ultraleap\LeapSDK\include`
+- add the lib x64 folder `C:\Program Files\Ultraleap\LeapSDK\lib\x64`
+- (this isn't working) add a post build event command line `xcopy /yr "C:\Program Files\Ultraleap\LeapSDK\lib\x64\Leap.dll" "$(TargetDir)"` > try replacing `"$(TargetDir)"` with `"$(ProjectDir)\bin\Release"`
+- add `"C:\Program Files\Ultraleap\LeapSDK\lib\x64\LeapC.lib";` to Linker > Input > Additional Dependencies
+
+xcopy /yr "C:\Program Files\Ultraleap\LeapSDK\lib\x64\Leap.dll" 

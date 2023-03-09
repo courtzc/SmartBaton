@@ -1,11 +1,17 @@
-### Data Manipulation
+## Data Manipulation
 
-#### Optical Capture Data
+### Optical Capture Data
 
 Step 1: who knows.
 
 
-#### Mechanical Capture Data
+### Mechanical Capture Data
+
+Required MATLAB toolboxes:
+- Robotics System Toolbox
+- Navigation Toolbox
+- Sensor Fusion and Tracking Toolbox
+
 Given the accelerometer and gyroscope readings (should we add the mag readings?) we can get an orientation quarternion for the IMU.
 this is done by using the imufilter functionality in matlab. The maths exists.
 

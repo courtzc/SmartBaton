@@ -49,5 +49,13 @@ for i = 1:length(orientation_quarternion)
     p0 = m_0_T_i(1:3,4);
     batonTipPose(:,:,i) = p0;
 
+    rotm = quat2rotm(orientation_quarternion(i));
+
+    p02 = baton_length * rotm(:,3);
+
+    if (p0 ~= p02)
+        disp("did not match")
+    end
+
 
 end

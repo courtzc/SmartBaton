@@ -85,3 +85,9 @@ and then goes back however many rows for however many readings we take.
 
 When plotting, we want to get all the accX values, etc etc. to do this, we can take
 IMU_Data (1,1,:) for accX values. However, matlab still treats this as a 3D array which won't work. add `squeeze(IMU_Data(1,1,:))` to get the accX values in a 1D array.   
+
+
+# Leap Setup
+The leap sdk downloads in ProgramFiles when you download the Windows latest leap.
+
+Go to `C:\Program Files\Ultraleap\ControlPanel\UnityApp` and open `Ultraleap Control Panel.exe` to see the UI interface.

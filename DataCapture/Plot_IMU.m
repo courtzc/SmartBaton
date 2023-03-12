@@ -1,6 +1,6 @@
 Fs = sample_rate;
 decim = 2;
-[orientation,angularVelocity] = FUSE(accelReadings,gyroReadings);
+[orientation,angularVelocity] = FUSE(accelReadings,gyroReadings,magReadings);
 time = (0:1:size(accelReadings-2,1)-1)/Fs;
 
 figure

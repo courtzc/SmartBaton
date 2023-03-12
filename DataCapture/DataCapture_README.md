@@ -94,7 +94,33 @@ The leap sdk downloads in ProgramFiles when you download the Windows latest leap
 
 Go to `C:\Program Files\Ultraleap\ControlPanel\UnityApp` and open `Ultraleap Control Panel.exe` to see the UI interface.
 
+UPDATE 12/03/23:
+we might need an earlier version of leap. https://developer.leapmotion.com/releases. Download Windows 5.0.0.
+Go to `C:\Program Files\Leap Motion\Core Services` and open `Visualiser.exe` to see the UI interface.
 
+"there are a couple of interfaces to use our hand tracking with Matlab, this one (https://github.com/jeffsp/matleap) with uses our older V2 SDK (https://developer.leapmotion.com/legacy-v2/) or this newer version (https://github.com/tomh4/matleap) that have been updated to work with Orion V4 (https://developer.leapmotion.com/releases/leap-motion-orion-410-99fe5-crpgl). Unfortunately there is no Matlab interface that is compatible with Gemini V5 yet."
+
+clone this git repo into DataCapture (may not need to do again) follow the instructions:  https://github.com/tomh4/matleap
+
+- In matlab, run  `mex -setup C++`
+    ```
+    >> mex -setup
+    MEX configured to use 'Microsoft Visual C++ 2022 (C)' for C language compilation.
+
+    To choose a different language, select one from the following:
+    mex -setup C++ % click this one
+    mex -setup FORTRAN
+    MEX configured to use 'Microsoft Visual C++ 2022' for C++ language compilation.
+    ```
+
+- copy **LeapSDK** folder from the orion download into the matleap folder
+- **COPY `LeapC.dll` INTO THE MATLEAP DIRECTORY**!!
+- you should be able to then run the other stuff.
+
+
+
+#### Outdated
+*##### Leap C
 for code:
 make an empty C++ project
 add a .c file (you won't be able to do the next step til you do)
@@ -107,3 +133,25 @@ follow these instructions (https://developer-archive.leapmotion.com/documentatio
 - add `"C:\Program Files\Ultraleap\LeapSDK\lib\x64\LeapC.lib";` to Linker > Input > Additional Dependencies
 
 xcopy /yr "C:\Program Files\Ultraleap\LeapSDK\lib\x64\Leap.dll" 
+
+
+##### Leap Open XR
+
+###### downloads
+https://docs.ultraleap.com/openxr/
+download:
+- OpenXR for Windows Mixed Reality
+- OpenXR Tools for Windows Mixed Reality
+
+clone:
+https://github.com/microsoft/OpenXR-MixedReality
+
+##### setup
+open the OpenXR-MixedReality samples.sln, install any necessary things when prompted
+enable developer mode on computer
+
+in the visual studio installer, go to modify > invidivdual components > add `Windows SDK version 10.0.18362.0` (you'll need to close vs instances)
+    you might not need to do that. try retargeting the solution to update it to v143
+
+https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#return-codes
+*

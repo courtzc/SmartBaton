@@ -21,7 +21,7 @@ set(s,'BaudRate',115200); % baud rate for communication
 fopen(s); % open the comm between Arduino and MATLAB
 
 
-% read in 100 lines of IMU data
+% read in 1000 lines of IMU data
 IMU_data = zeros(3,3,1000);
 i = 1;
 while i < 1000

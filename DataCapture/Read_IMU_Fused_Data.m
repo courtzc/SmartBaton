@@ -1,9 +1,9 @@
 clear
-sample_rate = 20; % Hz
+sample_rate = 1000; % Hz
 
 
 
-FUSE = imufilter;
+FUSE = imufilter('SampleRate',sample_rate);
 
 % MATLAB data for reading Arduino serial prinout data
 % reset
@@ -22,9 +22,11 @@ fopen(s); % open the comm between Arduino and MATLAB
 
 
 % read in 1000 lines of IMU data
-IMU_data = zeros(3,3,1000);
+IMU_data = zeros(3,3,300);
 i = 1;
-while i < 1000
+tic;
+while i < 300
+    toc
     out = fscanf(s);
 %     
 %     disp("out:")
@@ -48,7 +50,13 @@ while i < 1000
 %         disp("---------------------------")
     end
 
+    java.lang.Thread.sleep((i-toc)*0.01);
+
 end
+
+[orientation,angularVelocity] = FUSE(accelReadings,gyroReadings);
+% filename = sprintf("Data\IMU_Orientation_Reading_17_03_23_%d", randi([1,100],1,1))
+save("Data\IMU_Orientation_Reading_17_03_23_2", "orientation")
 
 % 
 % % close connection to serial port

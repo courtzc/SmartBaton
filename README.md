@@ -24,4 +24,6 @@ This folder contains images and .figs of data (both raw and manipulated).
 
 
 
+## What's next
+let's get these devices sending me info wirelessly.
 

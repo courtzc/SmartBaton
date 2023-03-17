@@ -28,11 +28,11 @@ viewPoint = [0, 90]; % front view (X and Y)
 
 % set up the feature and habit names
 features = ["Normal", "Accelerando", "Ritardando", "Lead in", "Cut off", "Crescendo", "Diminuendo", "Marcato", "Legato"];
-habits = ["Textbook", "Knee movement", "Waist movement", "Feet movement", "Wrist movement", "Upper arm movement"];
+habits = ["No Extraneous Movement", "Extraneous Knee Movement", "Extraneous Waist Movement", "Extraneous Feet Movement", "Extraneous Wrist Movement", "Extraneous Upper Arm Movement"];
 
 
 % change j range for which features should exist
-for j = 1:6    
+for j = 1:1    
 
     % Get all files of the jth feature
     miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
@@ -56,10 +56,12 @@ for j = 1:6
         % set up subplot
         subplot(2,3,k)
         hold on
-        xlim([-1.6,0.7])
-        ylim([0.3,2.7])
+        axis equal;
+        xlim([-1.2,0.1])
+        ylim([0.8,2.2])
         title (habits(k))
-        colorbar
+        c = colorbar;
+        colormap('turbo')
         c.Ticks = [0 0.5 1];
         c.TickLabels = {'Slow','Medium','Fast'};
         view (viewPoint(1),viewPoint(2))
@@ -100,7 +102,9 @@ for j = 1:6
     pngSaveTitles{j} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
     % set title
-    sgtitle(strrep(graphDetails, '_', ' '))
+    sgtitle("76bpm, conducting at mezzo forte (mf), with assorted extraneous movements.")
+
+%     sgtitle(strrep(graphDetails, '_', ' '))
 
     hold off
 end

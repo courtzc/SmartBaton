@@ -1,7 +1,7 @@
 % we do three transforms, one for each degree of freedom of the IMU
 
 %% inputs
-orientation_quarternion = load('IMU_Orientation_Reading_08_03_23.mat').orientation;
+orientation_quarternion = load('IMU_Orientation_Reading_17_03_23.mat').orientation;
 baton_length = 0.2;
 
 

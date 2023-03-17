@@ -2,7 +2,9 @@
 
 ### Optical Capture Data
 
-Step 1: who knows.
+get_leap_data pulls frames from the Leap Device and extracts the hand data from that. not sure yet how to differentiate between a right and left hand, or makke sure you're sticking with the same one. maybe when a seocnd hand enters the struct, we choose whichever is closest to the single hand in the previous frame.
+
+
 
 
 ### Mechanical Capture Data

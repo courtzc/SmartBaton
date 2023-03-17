@@ -119,6 +119,24 @@ clone this git repo into DataCapture (may not need to do again) follow the instr
 
 
 
+## Orientation data (IMU)
+There needs to be a calibration rotation matrix, which will divide through everything else. rotm0 - you can make it the rotm that comes out of the first quarternion. In order to get a good transform, your axes need to be aligned, so your first rotm should be taken when your imu is pointing straight up (and leap axes and imu axes are aligned, see picture on 17/03/23).
+
+The sample rate of the IMU is very important. your FUSE = imufilter() needs to have an argument with the sample rate, and it needs to be exactly what your reading speed is. If it isn't, the data will be wildly wrong. this still isn't perfect on 17/03. #TOCHANGE please fix this.
+
+## Fused Capture Data
+use Read_IMU_And_LeapDevice (which is in DataCapture/, to be fair) to get in both elements of data.
+
+
+
+
+
+
+
+
+
+
+
 #### Outdated
 *##### Leap C
 for code:

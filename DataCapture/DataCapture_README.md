@@ -124,8 +124,13 @@ There needs to be a calibration rotation matrix, which will divide through every
 
 The sample rate of the IMU is very important. your FUSE = imufilter() needs to have an argument with the sample rate, and it needs to be exactly what your reading speed is. If it isn't, the data will be wildly wrong. this still isn't perfect on 17/03. #TOCHANGE please fix this.
 
+the sample rate won't be fixed until we fix our little friend drawnow. The overall loop is taking a lot longer than the sample rate or fps (we're trying at a delay of 20ms so 50Hz), so things aren't working out. we need our loop to be well below 20ms so that we can start it again at exactly after. see `Read_IMU_and_leap_times_tictoc_240323.jpg` for an example of what I mean. Apparently updating the data using set(), rather than calling plot() each time, will drastically reduce this. https://stackoverflow.com/questions/50093938/how-to-speed-up-a-very-slow-animated-plot-in-matlab.
+
+
+In the meantime, I've put a very slow sample rate, so at least I'm getting exactly what I'm asking for.
+
 ## Fused Capture Data
-use Read_IMU_And_LeapDevice (which is in DataCapture/, to be fair) to get in both elements of data.
+use Read_IMU_And_LeapDevice  to get in both elements of data.
 
 
 

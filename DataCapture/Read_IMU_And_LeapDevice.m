@@ -12,14 +12,15 @@ function Read_IMU_And_LeapDevice
     end
     
     s = serial('COM3'); % change this to desired Arduino board port
-    set(s,'BaudRate',115200); % baud rate for communication
+    set(s,'BaudRate',250000); % baud rate for communication
     fopen(s); % open the comm between Arduino and MATLAB
 
-    sample_rate = 1000; % Hz
+    sample_rate = 5000; % Hz
     FUSE = imufilter('SampleRate',sample_rate);
 %     FUSE = imufilter();
         
     setGlobalRotm(zeros(3,3))
+    duration = 0.2; % duration of each loop, in seconds
 
 
     %% inputs
@@ -35,7 +36,7 @@ function Read_IMU_And_LeapDevice
     hold on;
     axis equal;
     title("Leap Palm Positional Data & Baton Tip Pos from IMU 17/03/23")
-    view(3)
+    view(2)
     colourAlt = {'#FF6633', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
     plot3([0,20], [0,0], [0,0], 'color', 'b')
     plot3([0,0], [0,20], [0,0], 'color', 'r')
@@ -47,25 +48,44 @@ function Read_IMU_And_LeapDevice
     prev_transformed_baton_tip_pos = [0;0;0];
     prev_palm_pos = [0;0;0];
 
-    % we're going to smooth the data. observation says that about 20 data
-    % points are used in the smoothdata() sliding window. we'll have a
-    % sliding array of 30 to give it a fair go.
-    transformed_baton_tip_pos_raw_array = zeros(3,60);
-     i = 1;
+    % smooth data parameters
+    smooth_array_size = 2000;
+    transformed_baton_tip_pos_raw_array = zeros(3,smooth_array_size);
+    smooth_starting_buffer = 10;
 
-    tic;
+    % duration checks
+    loop_time = 200; %ms
+    
+
+    % loop counters
+    successful_loops = 1;
+    all_loops = 0;
+
+%     tic;
     while(~KEY_IS_PRESSED)
-        toc
+        tic
+        total_duration = 0;
         [IMU_reading, Leap_reading] = get_frame(s);
+        duration = toc*1000;
+        total_duration = total_duration + duration;
+        fprintf("get_frame: %.2fms\t", duration)
+        tic
         [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length);
+        duration = toc*1000;
+        total_duration = total_duration + duration;
+        fprintf("manipulate_imu: %.2fms\t", duration)
+        tic
         [palm_pos, leap_exists] = manipulate_leap(Leap_reading);
-
+        duration = toc*1000;
+        total_duration = total_duration + duration;
+        fprintf("manipulate_leap: %.2fms\t", duration)
+        
         % #TOCHANGE i think we could try removing a chunk of old data from
         % the array every 1000 i or so (and bring i down by 1000), so that
         % we can preallocate the smooth array. It needs to be long enough
         % that matlab can choose the window helpfully.
         if (imu_exists + leap_exists == 2)
-            
+            tic
             % transform the baton tip (add the leap translation) assuming axes are lined up?: x y z -> x y z
             % i think they are (for right hands found in leap), based on: 
             % this pic https://littlebirdelectronics.com.au/products/9-axis-compass-module-cjmcu-mpu9150
@@ -73,41 +93,60 @@ function Read_IMU_And_LeapDevice
             transformed_baton_tip_pos = [baton_tip_pos(1) + palm_pos(1); baton_tip_pos(2) + palm_pos(2); baton_tip_pos(3) + palm_pos(3)];
 %             transformed_baton_tip_pos = baton_tip_pos;
 
-            % remove the first (oldest) element of the array, add the new one
-%             transformed_baton_tip_pos_raw_array(:,1:end-1) = transformed_baton_tip_pos_raw_array(:,2:end);
-%             transformed_baton_tip_pos_raw_array(:,end) = transformed_baton_tip_pos;
-            transformed_baton_tip_pos_raw_array = [transformed_baton_tip_pos_raw_array, transformed_baton_tip_pos];
 
-            % smooth the raw data array with whatever window matlab deems best
-            [transformed_baton_tip_pos_smoothed_array] = smoothdata(transformed_baton_tip_pos_raw_array,2);
-%             window_array = [window_array, window];
-%             if (window > 27)
-%                 disp('large window detected')
-%             elseif (window <10)
-%                 disp('small window detected')
-%             else
-%                 disp('normal window detected')
-%             end
+            % once we get to this point, we can slide along the smoothed window.
+            if (successful_loops > (smooth_array_size - smooth_starting_buffer - 1))
+                % remove the first (oldest) element of the array, add the new one
+                transformed_baton_tip_pos_raw_array(:,1:end-1) = transformed_baton_tip_pos_raw_array(:,2:end);
+                transformed_baton_tip_pos_raw_array(:,end) = transformed_baton_tip_pos;
+
+                transformed_baton_tip_pos_smoothed_array = smoothdata(transformed_baton_tip_pos_raw_array,2,"gaussian",10);
+                plot3(transformed_baton_tip_pos_smoothed_array(1,(end-5):end),transformed_baton_tip_pos_smoothed_array(2,(end-5):end),transformed_baton_tip_pos_smoothed_array(3,(end-5):end),'color', colourAlt{6}, LineWidth=4) ;
 
 
-
+            % but at the beginning, we need to build up the smooth array
+            else
+                transformed_baton_tip_pos_raw_array(:,(successful_loops+smooth_starting_buffer)) = transformed_baton_tip_pos;
+                cols_with_all_zeros = find(all(transformed_baton_tip_pos_raw_array(:, (smooth_starting_buffer+1):end)==0), 1);
+%                 fprintf("first column: %d; ", cols_with_all_zeros)
+    
+                % smooth the raw data array with whatever window matlab deems best
+                transformed_baton_tip_pos_smoothed_array = smoothdata(transformed_baton_tip_pos_raw_array(:,1:(cols_with_all_zeros+smooth_starting_buffer)),2,"gaussian",10);
+                if (successful_loops > 40)
+                    w = successful_loops + 5; % number of points we're plotting at once for the smoothed array
+                    plot3(transformed_baton_tip_pos_smoothed_array(1,successful_loops:w),transformed_baton_tip_pos_smoothed_array(2,successful_loops:w),transformed_baton_tip_pos_smoothed_array(3,successful_loops:w),'color', colourAlt{6}, LineWidth=4) ;
+                end
+            end
+            duration = toc*1000;
+            total_duration = total_duration + duration;
+            fprintf("plot smooth: %.2fms\t", duration)
+            tic
             plot_frame(palm_pos, prev_palm_pos, transformed_baton_tip_pos, prev_transformed_baton_tip_pos, colourAlt{3})
             
-            if (i > 20)
-                w = i + 5; % number of points we're plotting at once for the smoothed array
-                plot3(transformed_baton_tip_pos_smoothed_array(1,i:w),transformed_baton_tip_pos_smoothed_array(2,i:w),transformed_baton_tip_pos_smoothed_array(3,i:w),'color', 'b', LineWidth=4) ;
-            end
+
 
             prev_transformed_baton_tip_pos = transformed_baton_tip_pos;
             prev_palm_pos = palm_pos;
-            i = i + 1;
+            successful_loops = successful_loops + 1;
 
-            if (i == 500)
-                disp('break')
-            end
+            duration = toc*1000;
+            total_duration = total_duration + duration;
+            fprintf("plot: %.2fms\t", duration)
+            
         end
-
-         java.lang.Thread.sleep((i-toc)*0.01);
+        fprintf("\n\ttotal_duration: %.2fms\t", total_duration)
+        time_left_in_loop = loop_time-total_duration;
+        fprintf("time left before sleep: %.2fms\t", loop_time-total_duration)
+        tic
+        if (time_left_in_loop > 0)
+            java.lang.Thread.sleep(time_left_in_loop);
+        end
+        duration = toc*1000;
+        total_duration = total_duration + duration;
+        fprintf("time left after sleep: %.2fms\n", loop_time-total_duration)
+%          error = abs(toc-duration);
+%          fprintf('Time left to wait after %d, which is successful loop %d: %f ms\n', all_loops, successful_loops, time_left_in_loop)
+         all_loops = all_loops + 1;
     end
 
     legend('x','y (leap z)','z (leap y)','Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
@@ -158,9 +197,9 @@ end
 function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length)
 
     [out_array, status] = str2num(IMU_reading);
+%     disp(out_array)
 
-    if (status)
-
+    if (status && isequal(size(out_array), [3,3]))
         %% get orientation quarternion
         accelReadings = out_array(1,:);
         gyroReadings = out_array(2,:);
@@ -181,21 +220,6 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
         rotm = rotm0\quat2rotm(orientation_quarternion);
         baton_tip_pos = rotm(:,2) .* baton_length;
 
-        %% transform baton tip pose
-        % All of these will remain the same every time.
-%         alpha = [deg2rad(-90), deg2rad(90), 0];
-%         d = [0, 0, baton_length];
-%         a = [0, 0, 0];
-% 
-%         eul_angles = quat2eul(orientation_quarternion);  % get next orientations from quarternion, convert to eul for theta
-%         theta = [eul_angles(3), eul_angles(2), eul_angles(1)];
-%         matrix_1 = DH_transformation_matrix(theta(1), d(1), a(1), alpha(1));
-%         matrix_2 = DH_transformation_matrix(theta(2), d(2), a(2), alpha(2));
-%         matrix_3 = DH_transformation_matrix(theta(3), d(3), a(3), alpha(3));
-%         m_0_T_i = matrix_1 * matrix_2 * matrix_3;
-%         baton_tip_pos = m_0_T_i(1:3,4); % extract pose
-%         disp("baton_tip_pos")
-%         disp(baton_tip_pos)
     else
         imu_exists = 0;
         baton_tip_pos = [0;0;0];
@@ -225,15 +249,26 @@ function plot_frame(palm_pos, prev_palm_pos, baton_tip_pos, prev_baton_tip_pos, 
     baton_tip_pos_array = [baton_tip_pos, prev_baton_tip_pos];
     % check IMU hasn't gone haywire. If it has, we'll plot it differently.
     distance_change = norm(baton_tip_pos - prev_baton_tip_pos);
+
+    
     
     % plot leap data
     plot3(palm_pos_array(1,:),palm_pos_array(2,:),palm_pos_array(3,:),'color', '#5A5A5A', LineWidth=1) ;
-  
+
+
     % conditionally plot IMU data.
     if(distance_change > 30)
         plot3(baton_tip_pos_array(1,:),baton_tip_pos_array(2,:),baton_tip_pos_array(3,:), 'color', 'r', LineWidth=0.1) ;
     else
         plot3(baton_tip_pos_array(1,:),baton_tip_pos_array(2,:),baton_tip_pos_array(3,:), 'color', colour, LineWidth=0.5) ;
     end
+
+%     fprintf("plot_frame: %.2fms\t", toc*1000)
+%     tic
+%     
     drawnow
+%     fprintf("drawnow: %.2fms\t", toc*1000)
+%     tic
+    
+
 end

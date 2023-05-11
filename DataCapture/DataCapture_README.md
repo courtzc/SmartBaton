@@ -26,12 +26,23 @@ follow this guide: https://www.instructables.com/Arduino-WeMos-D1-WiFi-UNO-ESP-8
 
 Upload the sketch `Read_IMU.ino` to the arduino.
 
-#### Input data (serial output)
+#### Input data (wifi output over tcp)
 each reading needs to end up in this format: 
 `00544.43 -00259.77 -00820.31; 00000.85 00006.11 00004.44; -00032.55 00044.10 00070.20`
 
 which can be achieved by this code in arduino loop:
 
+`sprintf(data, "%.2f %.2f %.2f; %.2f %.2f %.2f; %.2f %.2f %.2f \0", (myICM.accX()), (myICM.accY()), (myICM.accZ()), (myICM.gyrX()), (myICM.gyrY()), (myICM.gyrZ()), (myICM.magX()), (myICM.magY()), (myICM.magZ()));`
+
+see `Read_IMU_WiFi_11-05-23.ino` for more info.
+
+Essentially, we set a static ip and port for the arduino in its setup. then, we open it up to listen for tcp connections. then, in matlab, we request a tcp connection using our known tuple (current matlab + static arduino) and start going. As soon as the connection starts, the IMU will start sending the data. to stop it sending data, in matlab type `clear t` (or whatever you've called your tcp connection).
+
+#### Input data (serial output)
+each reading needs to end up in this format: 
+`00544.43 -00259.77 -00820.31; 00000.85 00006.11 00004.44; -00032.55 00044.10 00070.20`
+
+which can be achieved by this code in arduino loop:
 ```
 printFormattedFloat(sensor->accX(), 5, 2);
 SERIAL_PORT.print(" ");

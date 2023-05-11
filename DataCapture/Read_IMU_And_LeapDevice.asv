@@ -86,12 +86,11 @@ function Read_IMU_And_LeapDevice
     manipulate_imu_durations = zeros(500);
     manipulate_leap_durations = zeros(500);
     plot_durations = zeros(500);
-    total_durations = zeros(500);
+    get_frame_durations = zeros(500);
 
     get_frame_duration = 0;
     manipulate_imu_duration = 0;
     manipulate_leap_duration = 0;
-    plot_duration = 0;
 
     while(~KEY_IS_PRESSED)
         tic
@@ -114,9 +113,9 @@ function Read_IMU_And_LeapDevice
         
         % extract Leap data
         [palm_pos, leap_exists] = manipulate_leap(Leap_reading);
-            manipulate_leap_duration = toc*1000;
-            total_duration = total_duration + manipulate_leap_duration;
-            fprintf("manipulate_leap: %.2fms\t", manipulate_leap_duration)
+            duration = toc*1000;
+            total_duration = total_duration + duration;
+            fprintf("manipulate_leap: %.2fms\t", duration)
             tic
         
         if (imu_exists + leap_exists == 2)
@@ -160,17 +159,11 @@ function Read_IMU_And_LeapDevice
                 end
             end
 
-                plot_duration = toc*1000;
-                total_duration = total_duration + plot_duration;
-                fprintf("plot: %.2fms\t", plot_duration)
+                duration = toc*1000;
+                total_duration = total_duration + duration;
+                fprintf("plot: %.2fms\t", duration)
                 tic
 
-            
-            get_frame_durations(all_loops) = get_frame_duration;
-            manipulate_imu_durations(all_loops) = manipulate_imu_duration;
-            manipulate_leap_durations(all_loops) = manipulate_leap_duration;
-            plot_durations(all_loops) = plot_duration;
-            total_durations(all_loops) = total_duration;
             successful_loops = successful_loops + 1;
             
         end
@@ -185,19 +178,9 @@ function Read_IMU_And_LeapDevice
         all_loops = all_loops + 1;
     end
 
-
-    clear t;
     legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
     save_graph(myGuidController)
 
-    figure();
-    hold on;
-    plot(get_frame_durations)
-    plot(manipulate_imu_durations)
-    plot(manipulate_leap_durations)
-    plot(plot_durations)
-    plot(total_durations)
-    legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
 
     function myKeyPressFcn(hObject, event)
         KEY_IS_PRESSED  = 1;

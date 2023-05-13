@@ -1,13 +1,107 @@
-## Data Manipulation
+# Data Manipulation
 
-### Optical Capture Data
+## OptiTrack Data - Raw to CSV
+Essentially we get the centroid tracking data and save it in its own csv, as just numbers.
+
+### Saving the Raw Data
+
+Import the session files into 4 folders (motive takes, tracking data, screen capture, lab video)
+
+Rename them all with the session number:
+
+Powershell cd to directory and run:
+
+`Get-ChildItem -Exclude "Session01\_\*"| rename-item -NewName { "Session01\_"+ $\_.Name }`
+
+_From \<_[_https://stackoverflow.com/questions/20874915/rename-multiple-files-in-a-folder-add-a-prefix-windows_](https://stackoverflow.com/questions/20874915/rename-multiple-files-in-a-folder-add-a-prefix-windows)_\>_
+
+
+
+### Extracting the Useful Data
+
+#### Get the centroid 3x? array
+
+Copy the raw tracking data csvs into new folder
+
+In bash, cd to directory.
+
+Run this script. It does 4 things:
+1. moves the raw files to a sub directory
+2. extracts columns B, G, H, and I from each raw file
+3. removes any lines that have a blank or lack data
+4. removes the first 6 lines
+
+```
+mkdir Raw
+
+for file in \*.csv
+
+do
+    mv ${file} Raw
+done
+
+
+mkdir BGHI
+
+for file in Raw/*.csv
+do
+    echo "$file"
+    t=$(echo "$file" | sed 's/.*\///; s/.csv//')
+    cut -f 2,7-9 -d ',' "$file" > "BGHI/${t}_BGHI.csv"
+done
+
+
+mkdir BlanksRemoved
+
+for file in BGHI/*.csv
+do
+    t=$(eval "echo \"$file\" | sed 's/.*\///; s/.csv//'")
+    cat "$file" | sed -e '/,,/d' -e '/^,/d' -e '/,$/d' > "BlanksRemoved/${t}_BlanksRemoved.csv"
+done
+
+
+for file in BlanksRemoved/*.csv
+do
+    t=$(echo "$file" | sed 's/.*\///; s/.csv//')
+    echo $file
+    cat ${file} | sed '1,7d' ${file} > "${t}_SimpleCentroid.csv"
+done
+
+
+
+rm -rf Raw
+rm -rf BGHI
+rm -rf BlanksRemoved
+
+
+```
+
+how to get the rows of all 0 out (move them into a new folder i.e. rawZero):
+for file in rawZero/*.csv
+do
+    t=$(eval "echo \"$file\" | sed 's/.*\///; s/.csv//'")
+    sed -e '/^[0,]*$/d' "$file" > "${t}.csv"
+done
+
+
+## OptiTrack Data - CSV to single cycle (time split) resampled
+
+### csv to mat
+use `csvToMat.m` and point it to whatever file pattern you want.
+
+### cycles (time split)
+use `IndividualPathCyclesTimeThreshold.m` and point it to whatever file pattern you want.
+
+
+
+## Leap Optical Data
 
 get_leap_data pulls frames from the Leap Device and extracts the hand data from that. not sure yet how to differentiate between a right and left hand, or makke sure you're sticking with the same one. maybe when a seocnd hand enters the struct, we choose whichever is closest to the single hand in the previous frame.
 
 
 
 
-### Mechanical Capture Data
+## Mechanical Data
 
 Required MATLAB toolboxes:
 - Robotics System Toolbox

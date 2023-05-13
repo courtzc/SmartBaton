@@ -2,7 +2,7 @@
 
 % Get all files of the jth feature
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session01_ManipulatedData\SavedCycles\*.mat";
+    "Data\Session01_ManipulatedData\SavedCycles\Session01_Exp_*.mat";
 
 % collect the files
 theFiles = dir(miniPattern);
@@ -46,7 +46,7 @@ for k = 1:length(theFiles)
     tXYZ = [t, X, Y, Z];
     
     % save new data
-    fileName = sprintf("%s_Resampled.mat", currFileName(1:end-4));
+    fileName = sprintf("Data\\Session01_ManipulatedData\\SavedCycles_Resampled\\%s_Resampled.mat", currFileName(1:end-4));
     save(fileName, 'tXYZ');
 
 end

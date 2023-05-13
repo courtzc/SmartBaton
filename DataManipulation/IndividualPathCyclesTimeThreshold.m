@@ -76,7 +76,7 @@ for k = 1:length(theFiles)
             clear tXYZ;
 %             sprintf("cycleStartIndex: %d. cycleEndIndex: %d.",cycleStartIndex, cycleEndIndex)
             tXYZ = PosData(cycleStartIndex:cycleEndIndex, :);
-            fileName = sprintf("Session01_ExpA1_00%d_SavedCycle_%d.mat",(k+2), l);
+            fileName = sprintf("Data\\Session01_ManipulatedData\\SavedCycles\\%sSavedCycle_%d.mat",simpleFileName(1:21), l);
             save(fileName, 'tXYZ');
             l = l+1;
         end

@@ -143,3 +143,104 @@ this pic https://littlebirdelectronics.com.au/products/9-axis-compass-module-cjm
 and this pic https://developer.unigine.com/en/docs/latest/code/plugins/leapmotion/?rlang=cpp
 so the baton tip is:
     transformed_baton_tip_pos = [baton_tip_pos(1) + palm_pos(1); baton_tip_pos(2) + palm_pos(2); baton_tip_pos(3) + palm_pos(3)];
+
+
+# OptiTrack Setup
+Motive and OBS and Excel need to be set up every time. MATLAB is just if you'd like to instantly visualise it
+## Motive capture
+### Setup
+Turn cameras on:
+	2nd power point from left on
+	Wait a bit
+	Boot up motive
+Calibrate cameras:
+	File > open > Ahmed Ahmed > Calibration exception… .cal
+Calibrate baton:
+	Wave baton around in arena
+	select all 5 markers > right click > rigid body > create rigid body from selected markers
+Check rigid body:
+	Leave baton in arena
+	Double check all 5 markers are in rigid body
+Get consistent view
+	Capture layout > 3D views > perspective view > zoom out > all 10 cameras near top in circle, most of grid in view
+Add session folder:
+	File > add session folder > go to OptiTrack folder > right click > new folder > name folder > click 'choose'
+Set up export tracking data folder:
+	Do a quick take > right click > export tracking data > go to the new session folder created above > double click to go inside > export (all exports now go to that folder)
+
+### Recording
+Get screen record ready:
+	Close properties pane
+Record a take:
+	Rename take to experiment name > Record > Stop record
+Extract tracking data: (you can bulk do this later if you want)
+	Right click take > Export tracking data > save (saves as csv)
+(takes are autosaved)
+
+## OBS Window capture
+### Setup
+Get the motive window:
+	Sources > plus > window capture > Motive:Tracker 2.2.0 Final
+Set up save spots:
+	File > settings > advance > automatically remux to mp4
+	File > settings > output > recording path > add folder (need to create) for session
+Fit to screen:
+	Click on main display > right click > transform > fit to screen (OR cntrl+F)
+Remove unnecessary docks:
+	View > docks > untick audio mixer, scene transitions, scenes
+Make small:
+	Make as small as possible
+Resize motive window:
+	Motive window smaller so obs is side by side
+Resize capture:
+	In obs, full screen, crop the window to be the new size of motive (transform or cntrl F)
+	Right click > resize output (source size) > yes
+	make small again
+	
+Open file directory where videos will save:
+	Have open somewhere on monitor
+
+### Recording
+Record:
+	Controls (bottom right) > start recording > Stop recording
+	(automatically saves to C:/Users/Mechatronics/Videos/) as an mp4
+Rename:
+	In open file directory, change recording name to same as take.
+
+## Excel
+### Setup
+Open something from new session folder so it's set to that folder
+
+### Extract data
+File > open > whatever.csv
+Select columns G,H,I
+Ctrl C > Ctrl N > Ctrl V
+Delete text in top 7 columns
+Select columns > find and select > go to special > blanks > ok
+Right click on blank > delete button > delete entire row
+Select columns > ctrl C
+
+## MATLAB
+### Setup
+Create a file with this code
+	colourMap = jet(501);
+	figure
+	hold on
+	title ("conducting plot")
+	view (0,90)
+	for i = 1:length(unnamed(:,1))-1
+	   j = mod(i,500) + 1;
+	   plot3(unnamed((i:i+1),1), unnamed((i:i+1),2), unnamed((i:i+1),3), 'color', colourMap(j,:))
+	end
+Run and add file to path / save file
+
+### Plot
+(first time)
+Home > variable > new variable
+Paste csv columns
+Close
+
+(replacing existing variable)
+Double click on variable in workspace > delete (its already highlighted)
+Paste csv columns
+close

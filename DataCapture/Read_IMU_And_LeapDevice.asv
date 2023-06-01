@@ -144,10 +144,9 @@ function Read_IMU_And_LeapDevice
                 palm_pos_whole_array(:,end) = palm_pos;
 
                 %% save overall data
-                start_of_smoothed_data = successful_loops - length(transformed_baton_tip_pos_raw_array);
                 palm_pos_array_save(:,successful_loops) = palm_pos;
                 transformed_baton_tip_pos_raw_array_save(:, successful_loops) = transformed_baton_tip_pos;
-                transformed_baton_tip_pos_smoothed_array_save(:, start_of_smoothed_data:successful_loops) = transformed_baton_tip_pos_smoothed_array;
+                transformed_baton_tip_pos_smoothed_array_save(:, (successful_loops - length(transformed_baton_tip_pos_raw_array)) ) = 
 
 
                 %% update plot data
@@ -205,8 +204,7 @@ function Read_IMU_And_LeapDevice
     clear t;
     legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
     save_graph(myGuidController)
-    save_data(palm_pos_array_save, transformed_baton_tip_pos_raw_array_save, transformed_baton_tip_pos_smoothed_array_save)
-
+    save_data(arrays)
 
     figure();
     hold on;
@@ -240,11 +238,19 @@ function save_graph(myGuidController)
 
 end
 
-function save_data(palm_pos_array_save, transformed_baton_tip_pos_raw_array_save, transformed_baton_tip_pos_smoothed_array_save)
+function save_data(myGuidController)
     % get graph details
-    save('palm_pos_array_save_1', "palm_pos_array_save");
-    save('transformed_baton_tip_pos_raw_array_save_1', "transformed_baton_tip_pos_raw_array_save");
-    save('transformed_baton_tip_pos_smoothed_array_save_1', "transformed_baton_tip_pos_smoothed_array_save");
+    graphDetails = 'Palm Position and Baton tip position - transformed IMU CJMCU-20948 Data Reading and single hand Leap LM-010 Reading';
+    dataset = "Live test data from raw imu reading and raw leap reading. Loop every 20ms, imufilter sample rate 5000. arduino internal delay 200. only plotting last 500 values";
+    folderToSaveIn = 'Visualisations/IMU_Leap_CombinedData';   % Your destination folder
+    
+    % add to GUID directory
+    descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, dataset, folderToSaveIn, datetime('now'));
+    GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+    
+    % save all figures
+    FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
+    myGuidController.saveFigures(graphDetails, GUIDToAppend, FigList, folderToSaveIn);
 
 end
 

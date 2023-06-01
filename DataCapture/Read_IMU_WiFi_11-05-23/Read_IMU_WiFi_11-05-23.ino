@@ -28,8 +28,14 @@ ICM_20948_I2C myICM; // Otherwise create an ICM_20948_I2C object
 char data[150];
 
 // wifi setup ----------
-const char* ssid = "WiFi-CAFB";
-const char* password = "EpsieAxii1";
+// const char* ssid = "court's iPhone";
+// const char* password ="3h3m8gg13kq5roykt";
+// const char* ssid = "WiFi-CAFB";
+// const char* password = "EpsieAxii1";
+const char* ssid = "uniwide";
+const char* username = "z5175357";
+const char* password = "NeRd93HlP";
+
 const int port = 23;
 
 WiFiServer server(port);
@@ -51,29 +57,30 @@ void setup()
   while (!SERIAL_PORT)
   {
   };
-
+  Serial.setDebugOutput(true);
   // WiFi setup ------------
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    Serial.println("STA Failed to configure");
-  }
-  else
-  {
-    Serial.println("WiFi configured successfully!");
-  }
+  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  //   Serial.println("STA Failed to configure");
+  // }
+  // else
+  // {
+  //   Serial.println("WiFi configured successfully!");
+  // }
   Serial.print("Connecting to WiFi");
   Serial.println("...");
-  WiFi.begin(ssid, password);
-  int retries = 0;
+  WiFi.beginEnterprise(ssid, username, password);
+  // WiFi.begin(ssid, password);
+  // int retries = 0;
 
-  while ((WiFi.status() != WL_CONNECTED) && (retries < 15)) {
-    retries++;
+  while ((WiFi.status() != WL_CONNECTED)) {
+    // retries++;
     delay(500);
     Serial.print(".");
   }
 
-  if (retries > 14) {
-      Serial.println(F("WiFi connection FAILED"));
-  }
+  // if (retries > 14999) {
+  //     Serial.println(F("WiFi connection FAILED"));
+  // }
 
   if (WiFi.status() == WL_CONNECTED) {
       Serial.println(F("WiFi connected!"));

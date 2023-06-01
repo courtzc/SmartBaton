@@ -5,19 +5,21 @@ function Read_IMU_And_LeapDevice
     myGuidController = GUID_Controller;
     close all;
 
-    IPAddress = '192.168.1.199'; % Replace with the IP address of the Wi-Fi device
-    PortNumber = 23; % Replace with the port number of the Wi-Fi device
-    t = tcpclient(IPAddress, PortNumber);
+%     IPAddress = '192.168.1.199'; % Replace with the IP address of the Wi-Fi device
+%     PortNumber = 23; % Replace with the port number of the Wi-Fi device
+%     t = tcpclient(IPAddress, PortNumber);
 % 
-%     % IMU config
-%     if (~isempty(instrfindall))
-%         fclose(instrfindall);
-%         delete(instrfindall);
-%     end
-%     
-%     s = serial('COM3'); % change this to desired Arduino board port
-%     set(s,'BaudRate',250000); % baud rate for communication
-%     fopen(s); % open the comm between Arduino and MATLAB
+    % IMU config
+    if (~isempty(instrfindall))
+        fclose(instrfindall);
+        delete(instrfindall);
+    end
+    
+    s = serial('COM7'); % change this to desired Arduino board port
+    set(s,'BaudRate',115200); % baud rate for communication
+    set(s, 'Terminator', 'LF');
+%     set(s, 'InputBufferSize', 4096); % Set the buffer size to a larger value
+    fopen(s); % open the comm between Arduino and MATLAB
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
@@ -27,10 +29,13 @@ function Read_IMU_And_LeapDevice
 
     %% inputs
     % how long is your baton?
-    baton_length = 200;
+    baton_length = 100;
 
     % how much of a tail would you like?
     data_array_size = 500;
+
+    % how much of a fade out would you like on the tail?
+    fade_out_size = 300; % the earliest n bits of data that aren't zero get faded out. the nth onwards, from the nonzero index, is plotted normally.
     
     %% plot
 
@@ -45,7 +50,7 @@ function Read_IMU_And_LeapDevice
 
     % get handles to figure
     fig_handle=subplot(1,1,1);
-    plts = cell(1,3);
+    plts = cell(1,6);
 
     % initialise plot
     hold on;
@@ -53,16 +58,27 @@ function Read_IMU_And_LeapDevice
     titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from IMU %s", datetime('now'));
     title(titleName)
     view(2)
-    colourAlt = {'#FF6633', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
+    colourAlt = {'#5A5A5A', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
+    colourAlt1Fade = '#BEBEBE'; % checked by making a lighter version of #5A5A5A in word
+    colourAlt3Fade = '#A3EBFF'; % checked by making a lighter version of #00B3E6 in word
+    colourAlt6Fade = '#C4D3F8'; % checked by making a lighter version of #3366E6 in word
 
     xlabel('x')
     ylabel('y (leap z)')
     zlabel('z (leap y)')
 
-    % set up the three plot3s of the palm data, baton tip data, and smoothed baton tip data.
-    plts{1} = plot3(fig_handle,[0,1],[0,1],[0,1],'color','#5A5A5A','linewidth',2);
-    plts{2} = plot3(fig_handle,[0,1],[0,1],[0,1],'color',colourAlt{3});
-    plts{3} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{6}, LineWidth=4);
+    %% set up the plot3s of the palm data, baton tip data, and smoothed baton tip data.
+    % set up the fade plots - must go first to be at the back
+    plts{1} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt1Fade,'linewidth',2);
+    plts{2} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt3Fade);
+    plts{3} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt6Fade, LineWidth=4);
+
+    % set up the main plots
+    plts{4} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{1},'linewidth',2);
+    plts{5} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{3});
+    plts{6} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{6}, LineWidth=4);
+
+
 
 
 
@@ -98,25 +114,25 @@ function Read_IMU_And_LeapDevice
         total_duration = 0;
     
         % get frames
-%         [IMU_reading, Leap_reading] = get_frame(s);
-        [IMU_reading, Leap_reading] = get_frame(t);
+        [IMU_reading, Leap_reading] = get_frame(s);
+%         [IMU_reading, Leap_reading] = get_frame(t);
             get_frame_duration = toc*1000;
             total_duration = total_duration + get_frame_duration;
-            fprintf("get_frame: %.2fms\t", get_frame_duration) % it's the IMU frame that's occasionally slow. leap is consistently under 0.1ms. IMU is usually ~0.4ms, sometimes randomly 10 or 20ms.
+%             fprintf("get_frame: %.2fms\t", get_frame_duration) % it's the IMU frame that's occasionally slow. leap is consistently under 0.1ms. IMU is usually ~0.4ms, sometimes randomly 10 or 20ms.
             tic
         
         % extract IMU data
         [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length);
             manipulate_imu_duration = toc*1000;
             total_duration = total_duration + manipulate_imu_duration;
-            fprintf("manipulate_imu: %.2fms\t", manipulate_imu_duration)
+%             fprintf("manipulate_imu: %.2fms\t", manipulate_imu_duration)
             tic
         
         % extract Leap data
         [palm_pos, leap_exists] = manipulate_leap(Leap_reading);
             manipulate_leap_duration = toc*1000;
             total_duration = total_duration + manipulate_leap_duration;
-            fprintf("manipulate_leap: %.2fms\t", manipulate_leap_duration)
+%             fprintf("manipulate_leap: %.2fms\t", manipulate_leap_duration)
             tic
         
         if (imu_exists + leap_exists == 2)
@@ -127,6 +143,7 @@ function Read_IMU_And_LeapDevice
             % once we get to the sliding window size point, we can slide along the smoothed window.
             if (successful_loops > (data_array_size - smooth_starting_buffer - 1))              
                 %% remove the first (oldest) element of the array, add the new one
+%                 disp("sliding now")
                 % raw baton tip
                 transformed_baton_tip_pos_raw_array(:,1:end-1) = transformed_baton_tip_pos_raw_array(:,2:end);
                 transformed_baton_tip_pos_raw_array(:,end) = transformed_baton_tip_pos;
@@ -135,12 +152,32 @@ function Read_IMU_And_LeapDevice
                 % palm
                 palm_pos_whole_array(:,1:end-1) = palm_pos_whole_array(:,2:end);
                 palm_pos_whole_array(:,end) = palm_pos;
-
+%                 fprintf("[Raw  Array X] first: %.2f \t\t last: %.2f\n", transformed_baton_tip_pos_raw_array(1, 1), transformed_baton_tip_pos_raw_array(1, end));
+%                 fprintf("[Palm Array X] first: %.2f \t\t last: %.2f\n", palm_pos_whole_array(1, 1), palm_pos_whole_array(1, end));
+%                 fprintf("[Last palm non zero] %d\n",lastNonzeroPalmIndex);
                 %% update plot data
-                set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,:), 'YData', transformed_baton_tip_pos_smoothed_array(2,:), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,:));
-                set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,:), 'YData', transformed_baton_tip_pos_raw_array(2,:), 'ZData',  transformed_baton_tip_pos_raw_array(3,:));
-                set(plts{1}, 'XData', palm_pos_whole_array(1,:), 'YData', palm_pos_whole_array(2,:), 'ZData',  palm_pos_whole_array(3,:));
 
+                firstNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'first');
+                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first');
+                firstNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'first');
+%                 disp("updating data!")
+
+
+                
+                % note: fade data first so it's at the back
+                % earliest little bit of data to fade
+                set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)));
+                set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)));
+                set(plts{1}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)));
+                
+
+                % latest 90% ish of data
+                set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_smoothed_array(2,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,(firstNonzeroBatonSmoothIndex+fade_out_size):end));
+                set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,(firstNonzeroBatonRawIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_raw_array(2,(firstNonzeroBatonRawIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_raw_array(3,(firstNonzeroBatonRawIndex+fade_out_size):end));
+                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));
+                
+
+                drawnow
             % but at the beginning, we need to build up the arrays
             else
                 transformed_baton_tip_pos_raw_array(:,(successful_loops+smooth_starting_buffer)) = transformed_baton_tip_pos;
@@ -150,31 +187,49 @@ function Read_IMU_And_LeapDevice
     
                 % smooth the raw data array
                 transformed_baton_tip_pos_smoothed_array = smoothdata(transformed_baton_tip_pos_raw_array(:,1:(cols_with_all_zeros+smooth_starting_buffer)),2,"gaussian",10);
+
+%                 fprintf("[Raw  Array X] first: %.2f \t\t last: %.2f\n", transformed_baton_tip_pos_raw_array(1, (smooth_starting_buffer+1)), transformed_baton_tip_pos_raw_array(1, (end-smooth_starting_buffer-1)));
+%                 fprintf("[Palm Array X] first: %.2f \t\t last: %.2f\n", palm_pos_whole_array(1, (smooth_starting_buffer+1)), palm_pos_whole_array(1, (end-smooth_starting_buffer-1)));
+%                 fprintf("[Last palm non zero] %d\n",lastNonzeroPalmIndex);
+% %                 sprintf("[Raw Array] first: %.2f \t\t last: %.2f", transformed_baton_tip_pos_raw_array(1, smooth_starting_buffer), transformed_baton_tip_pos_raw_array(1, (end-smooth_starting_buffer)));
+
+                % only plot non zero bits
+                firstNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'first');
+                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first');
+                firstNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'first');
+
+                lastNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'last');
+                lastNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'last');
+                lastNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'last');
                 
+                lastNonzeroBatonSmoothIndex = lastNonzeroBatonSmoothIndex - smooth_starting_buffer;
+
+
                 % start after a bit of time
                 if (successful_loops > smooth_starting_buffer)
-                    set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,smooth_starting_buffer:(end-smooth_starting_buffer)), 'YData', transformed_baton_tip_pos_smoothed_array(2,smooth_starting_buffer:(end-smooth_starting_buffer)), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,smooth_starting_buffer:(end-smooth_starting_buffer)));
-                    set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,smooth_starting_buffer:(end-smooth_starting_buffer)), 'YData', transformed_baton_tip_pos_raw_array(2,smooth_starting_buffer:(end-smooth_starting_buffer)), 'ZData',  transformed_baton_tip_pos_raw_array(3,smooth_starting_buffer:(end-smooth_starting_buffer)));
-                    set(plts{1}, 'XData', palm_pos_whole_array(1,smooth_starting_buffer:(end-smooth_starting_buffer)), 'YData', palm_pos_whole_array(2,smooth_starting_buffer:(end-smooth_starting_buffer)), 'ZData',  palm_pos_whole_array(3,smooth_starting_buffer:(end-smooth_starting_buffer)));
+%                     disp("updating data!")
+                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex));
+                    set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
+                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex));
                     drawnow
                 end
             end
 
                 plot_duration = toc*1000;
                 total_duration = total_duration + plot_duration;
-                fprintf("plot: %.2fms\t", plot_duration)
+%                 fprintf("plot: %.2fms\t", plot_duration)
                 tic
 
             
-            get_frame_durations(all_loops) = get_frame_duration;
-            manipulate_imu_durations(all_loops) = manipulate_imu_duration;
-            manipulate_leap_durations(all_loops) = manipulate_leap_duration;
-            plot_durations(all_loops) = plot_duration;
-            total_durations(all_loops) = total_duration;
+%             get_frame_durations(all_loops) = get_frame_duration;
+%             manipulate_imu_durations(all_loops) = manipulate_imu_duration;
+%             manipulate_leap_durations(all_loops) = manipulate_leap_duration;
+%             plot_durations(all_loops) = plot_duration;
+%             total_durations(all_loops) = total_duration;
             successful_loops = successful_loops + 1;
             
         end
-        fprintf("total_duration: %.2fms\n", total_duration)
+%         fprintf("total_duration: %.2fms\n", total_duration)
         time_left_in_loop = loop_time-total_duration;
 %         fprintf("time left before sleep: %.2fms\t", loop_time-total_duration)
         tic
@@ -190,14 +245,14 @@ function Read_IMU_And_LeapDevice
     legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
     save_graph(myGuidController)
 
-    figure();
-    hold on;
-    plot(get_frame_durations)
-    plot(manipulate_imu_durations)
-    plot(manipulate_leap_durations)
-    plot(plot_durations)
-    plot(total_durations)
-    legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
+%     figure();
+%     hold on;
+%     plot(get_frame_durations)
+%     plot(manipulate_imu_durations)
+%     plot(manipulate_leap_durations)
+%     plot(plot_durations)
+%     plot(total_durations)
+%     legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
 
     function myKeyPressFcn(hObject, event)
         KEY_IS_PRESSED  = 1;
@@ -222,10 +277,10 @@ function save_graph(myGuidController)
 
 end
 
-function [IMU_reading, Leap_reading] = get_frame(t)
+function [IMU_reading, Leap_reading] = get_frame(s)
     % get IMU data
-%     IMU_reading = fscanf(s);
-    IMU_reading = read(t);
+    IMU_reading = fscanf(s);
+%     IMU_reading = read(t);
     
     
     % get Leap frame
@@ -243,9 +298,11 @@ function r = getGlobalRotm
 end
 
 function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length)
-    IMU_reading_str = char(IMU_reading);
-    [out_array, status] = str2num(IMU_reading_str);
-%     disp(out_array)
+%     IMU_reading_str = char(IMU_reading);
+%     disp("maniuplating imu")
+%     [out_array, status] = str2num(IMU_reading_str);
+    [out_array, status] = str2num(IMU_reading);
+%     disp(status)
 
     if (status && isequal(size(out_array), [3,3]))
         %% get orientation quarternion
@@ -262,11 +319,13 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
             rotmToSet = quat2rotm(orientation_quarternion);
             setGlobalRotm(rotmToSet)
             disp('found a quarternion')
+            baton_tip_pos = rotm0(:,2) .* baton_length;
+        else
+            %% transform baton tip pose
+            rotm = rotm0\quat2rotm(orientation_quarternion);
+            baton_tip_pos = rotm(:,2) .* baton_length;
         end
 
-        %% transform baton tip pose
-        rotm = rotm0\quat2rotm(orientation_quarternion);
-        baton_tip_pos = rotm(:,2) .* baton_length;
 
     else
         imu_exists = 0;

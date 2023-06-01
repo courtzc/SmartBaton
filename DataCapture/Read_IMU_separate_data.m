@@ -9,7 +9,7 @@ close all;
 myGuidController = GUID_Controller;
 
 % start
-s = serial('COM3'); % change this to desired Arduino board port
+s = serial('COM7'); % change this to desired Arduino board port
 set(s,'BaudRate',115200); % baud rate for communication
 fopen(s); % open the comm between Arduino and MATLAB
 

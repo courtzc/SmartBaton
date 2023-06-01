@@ -85,7 +85,7 @@ void loop()
   else
   {
     SERIAL_PORT.println("Waiting for data");
-    delay(500);
+    delay(30);
   }
 }
 
@@ -210,26 +210,22 @@ void printScaledAGMT(ICM_20948_SPI *sensor)
 void printScaledAGMT(ICM_20948_I2C *sensor)
 {
 #endif
-  SERIAL_PORT.print("Scaled. Acc (mg) [ ");
   printFormattedFloat(sensor->accX(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->accY(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->accZ(), 5, 2);
-  SERIAL_PORT.print(" ], Gyr (DPS) [ ");
+  SERIAL_PORT.print("; ");
   printFormattedFloat(sensor->gyrX(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->gyrY(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->gyrZ(), 5, 2);
-  SERIAL_PORT.print(" ], Mag (uT) [ ");
+  SERIAL_PORT.print("; ");
   printFormattedFloat(sensor->magX(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->magY(), 5, 2);
-  SERIAL_PORT.print(", ");
+  SERIAL_PORT.print(" ");
   printFormattedFloat(sensor->magZ(), 5, 2);
-  SERIAL_PORT.print(" ], Tmp (C) [ ");
-  printFormattedFloat(sensor->temp(), 5, 2);
-  SERIAL_PORT.print(" ]");
   SERIAL_PORT.println();
 }

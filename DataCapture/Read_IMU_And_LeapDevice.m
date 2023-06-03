@@ -15,7 +15,7 @@ function Read_IMU_And_LeapDevice
         delete(instrfindall);
     end
     
-    s = serial('COM7'); % change this to desired Arduino board port
+    s = serial('COM8'); % change this to desired Arduino board port
     set(s,'BaudRate',115200); % baud rate for communication
     set(s, 'Terminator', 'LF');
 %     set(s, 'InputBufferSize', 4096); % Set the buffer size to a larger value

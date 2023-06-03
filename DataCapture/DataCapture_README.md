@@ -99,6 +99,8 @@ IMU_Data (1,1,:) for accX values. However, matlab still treats this as a 3D arra
 
 
 # Leap Setup
+NOTE: you CANNOT have multiple versions of Leap Motion on your device. you CANNOT have UltraLeap software of any kind on your device. delete EVERYTHING extraneous, then download orion as below ONLY.
+
 ## One time Setup
 Download ORION (that's the compatible sdk with this leap device) from `https://developer.leapmotion.com/releases/leap-motion-orion-410-99fe5-crpgl`. Unzip `LeapDeveloperKit_4.1.0+52211_win.zip` and install `Leap_Motion_Installer_v4-2020-release-updates_public_win_x64_4.1.0+52211_ah1889.exe`. You should then see a thing in the icons on your taskbar called "Leap Motion Controller", and if you right click you can open the Visualiser to see everything that's happening.
 

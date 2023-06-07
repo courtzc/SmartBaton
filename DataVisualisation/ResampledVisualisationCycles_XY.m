@@ -3,10 +3,10 @@ close all;
 myGuidController = GUID_Controller;
 
 theFiles = [];
-for j = 4:6
+for j = 1:2
     miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
         "Data\Session01_ManipulatedData\SavedCycles_Resampled\" + ...
-        "Session01_*_00"+j+"_SavedCycle_*.mat";
+        "Session01_Exp_F1_001_SavedCycle_"+j+"*.mat";
     
     % collect the files
     theFiles = [theFiles; dir(miniPattern)];
@@ -15,7 +15,8 @@ end
 
 figure;
 hold on;
-title("Average 44 path, mf, 60bpm")
+axis equal;
+
 
 % do for every file in the files
 for k = 1:length(theFiles)
@@ -29,12 +30,17 @@ for k = 1:length(theFiles)
 
 end
 
+averageFile = "Data\Session01_ManipulatedData\SavedCycles_Resampled\Session01_Exp_F1_All_Resampled_Average.mat";
+resampledAverageData = load(averageFile).tXYZ_Average;
+plot(resampledAverageData(:,2), resampledAverageData(:,3), 'LineWidth',2, 'Color','k')
+
+
 % get graph details
-graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName);
+graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_Upper_Arm');
 
 % save in GUID directory, get GUID
 folderToSaveIn = 'Visualisations/Session01_IndividualCyclesTimeThreshold';   % Your destination folder
-descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
+descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, currFileName, folderToSaveIn, datetime('now'));
 GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
 
 % set title

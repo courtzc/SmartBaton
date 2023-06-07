@@ -37,3 +37,6 @@ for iFig = 1:length(FigList)
   saveas(FigHandle, fullfile(folderToSaveIn, pngName));
 end
 ```
+
+## To view all resampled cycles and then overlaid their average
+run `ResampledVisualisationCycles_XY.m`

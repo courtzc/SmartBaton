@@ -3,7 +3,7 @@ myGuidController = GUID_Controller;
 
 close all
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session01_ManipulatedData\SavedCycles_Resampled\Session01_ExpA1_0*Resampled.mat";
+    "Data\Session01_ManipulatedData\SavedCycles_Resampled\Session01_Exp_B1_0*Resampled.mat";
     
 % collect the files
 theFiles = dir(miniPattern);
@@ -49,7 +49,7 @@ for k = 1:length(theFiles)
     graphDetails = sprintf('60bpm_mf_44path_Normal_SplitCycles_TimeBased_%s',  simpleFileName(1:end-4));
     
     % save in GUID directory, get GUID
-    folderToSaveIn = 'Visualisations/Session01_Resampled_Average_Figures';   % Your destination folder
+    folderToSaveIn = 'Visualisations/Session01_B1_Resampled_Average_Figures';   % Your destination folder
     descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     

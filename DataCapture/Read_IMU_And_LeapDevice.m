@@ -15,7 +15,7 @@ function Read_IMU_And_LeapDevice
         delete(instrfindall);
     end
     
-    s = serial('COM11'); % change this to desired Arduino board port
+    s = serial('COM8'); % change this to desired Arduino board port
     set(s,'BaudRate',115200); % baud rate for communication
     set(s, 'Terminator', 'LF');
 %     set(s, 'InputBufferSize', 4096); % Set the buffer size to a larger value
@@ -23,7 +23,8 @@ function Read_IMU_And_LeapDevice
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
-    setGlobalRotm(zeros(3,3))
+    rotm0_known = load('IMU_rotm0.mat').averages;
+    setGlobalRotm(rotm0_known)
 
 
 
@@ -317,7 +318,7 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
         % if rotm0 hasn't been set, set it now
         if (~any(rotm0))
             rotmToSet = quat2rotm(orientation_quarternion);
-            setGlobalRotm(rotmToSet)
+%             setGlobalRotm(rotmToSet)
             disp('found a quarternion')
             baton_tip_pos = rotm0(:,2) .* baton_length;
         else

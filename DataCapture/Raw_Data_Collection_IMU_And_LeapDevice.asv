@@ -18,9 +18,9 @@ function Raw_Data_Collection_IMU_And_LeapDevice
     FUSE = imufilter('SampleRate',sample_rate);
 
     %% data array size - how many loops?
-    data_array_size = 400;
+    data_array_size = 300;
 
-    ExperimentCode = "Exp_4.2.E";
+    ExperimentCode = "Exp_2.1.A";
 
     %% initialise arrays
     IMU_readings = cell(data_array_size, 1);

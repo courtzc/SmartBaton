@@ -12,6 +12,9 @@ Rename them all with the session number:
 Powershell cd to directory and run:
 
 `Get-ChildItem -Exclude "Session01\_\*"| rename-item -NewName { "Session01\_"+ $\_.Name }`
+Get-ChildItem -Exclude "Session02\_\*" | rename-item -NewName { "Session02_"+ $_.Name }
+
+Get-ChildItem D:\OneDrive\Documents\trackingdatarename -File | Rename-Item -NewName { "Session02_" + $_.Name }
 
 _From \<_[_https://stackoverflow.com/questions/20874915/rename-multiple-files-in-a-folder-add-a-prefix-windows_](https://stackoverflow.com/questions/20874915/rename-multiple-files-in-a-folder-add-a-prefix-windows)_\>_
 
@@ -41,19 +44,28 @@ do
 done
 
 
-mkdir BGHI
+mkdir CutColumns
 
 for file in Raw/*.csv
 do
     echo "$file"
     t=$(echo "$file" | sed 's/.*\///; s/.csv//')
-    cut -f 2,7-9 -d ',' "$file" > "BGHI/${t}_BGHI.csv"
+    cut -f 2,7-9 -d ',' "$file" > "CutColumns/${t}_BBaton.csv"
+done
+
+mkdir BHand
+
+for file in Raw/*.csv
+do
+    echo "$file"
+    t=$(echo "$file" | sed 's/.*\///; s/.csv//')
+    cut -f 2,31-33 -d ',' "$file" > "CutColumns/${t}_BHand.csv"
 done
 
 
 mkdir BlanksRemoved
 
-for file in BGHI/*.csv
+for file in CutColumns/*.csv
 do
     t=$(eval "echo \"$file\" | sed 's/.*\///; s/.csv//'")
     cat "$file" | sed -e '/,,/d' -e '/^,/d' -e '/,$/d' > "BlanksRemoved/${t}_BlanksRemoved.csv"
@@ -68,13 +80,13 @@ do
 done
 
 
+```
+
 
 rm -rf Raw
 rm -rf BGHI
 rm -rf BlanksRemoved
 
-
-```
 
 how to get the rows of all 0 out (move them into a new folder i.e. rawZero):
 for file in rawZero/*.csv

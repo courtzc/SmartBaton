@@ -1,30 +1,39 @@
 %% note
 % press and hold key to finish the data capture and visualisation
 
-function Read_IMU_And_LeapDevice
+function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     myGuidController = GUID_Controller;
     close all;
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
-    rotm0_known = load('../Data/IMU_rotm0.mat').averages;
+    rotm0_known = load('Data/IMU_rotm0.mat').averages;
     setGlobalRotm(rotm0_known)
 
     %% file load
-    IMU_and_Leap_filename = "Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_1.1.A_8-45-09-45-02.mat";
+    expID = "31B";
+    IMU_and_Leap_filename = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
+    Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Resampled_Scaled_Rotated.mat",expID);
 
-    IMU_Readings = load(IMU_and_Leap_filename).IMU_Readings;
-    Leap_Readings = load(IMU_and_Leap_filename).Leap_Readings;
+
+    Motive_Readings = load(Motive_filename).rotated_tracking_data';
+    Motive_Readings = Motive_Readings(2:4,:);
+    IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
+    Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
     Times = load(IMU_and_Leap_filename).Times;
+    
+
+
+%     plot3(Motive_Readings((i:i+1),1), Motive_Readings((i:i+1),2), Motive_Readings((i:i+1),3)
 
 
     %% inputs
     % how long is your baton?
-    baton_length = 100;
+    baton_length = 120;
 
 
     % how much of a tail would you like?
-    data_array_size = 500;
+    data_array_size = 1000;
 
     % how much of a fade out would you like on the tail?
     fade_out_size = 300; % the earliest n bits of data that aren't zero get faded out. the nth onwards, from the nonzero index, is plotted normally.
@@ -32,13 +41,13 @@ function Read_IMU_And_LeapDevice
     %% plot
 
     % get handles to figure
-    fig_handle=subplot(1,1,1);
+    fig_handle=subplot(1,2,1);
     plts = cell(1,6);
 
     % initialise plot
     hold on;
     axis equal;
-    titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from IMU %s", datetime('now'));
+    titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from Calibration Exp %s", expID);
     title(titleName)
     view(2)
     colourAlt = {'#5A5A5A', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
@@ -61,12 +70,26 @@ function Read_IMU_And_LeapDevice
     plts{5} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{3});
     plts{6} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{6}, LineWidth=4);
 
+    
+
+    % second plot
+    fig_handle_2=subplot(1,2,2);
+    plts_2 = cell(1,1);
+    % initialise plot
+    hold on;
+    axis equal;
+    titleName = sprintf("Motive Data from Calibration Exp %s", expID);
+    title(titleName)
+    view(2)
+    plts_2{1} = plot3(fig_handle_2,[0,1],[0,1],[0,1],'color', colourAlt{21}, LineWidth=3);
+
     % smooth data buffer
     smooth_starting_buffer = 10;
 
     % initialise arrays
     transformed_baton_tip_pos_raw_array = zeros(3,data_array_size);
     palm_pos_whole_array = zeros(3,data_array_size);
+    motive_array = zeros(3,data_array_size);
 
 
     % how often the loop runs
@@ -87,18 +110,21 @@ function Read_IMU_And_LeapDevice
     manipulate_leap_duration = 0;
     plot_duration = 0;
 
-    for i = 1:200
+
+
+    for i = 1:length(Times)
         tic
         total_duration = 0;
     
         % get frames
-        [IMU_reading, Leap_reading] = get_frame(s);
+        [IMU_reading, Leap_reading, Motive_reading] = get_frame(i, IMU_Readings, Leap_Readings, Motive_Readings);
+        
 %         [IMU_reading, Leap_reading] = get_frame(t);
             get_frame_duration = toc*1000;
             total_duration = total_duration + get_frame_duration;
             fprintf("get_frame: %.2fms\t", get_frame_duration) % it's the IMU frame that's occasionally slow. leap is consistently under 0.1ms. IMU is usually ~0.4ms, sometimes randomly 10 or 20ms.
             tic
-        
+
         % extract IMU data
         [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length);
             manipulate_imu_duration = toc*1000;
@@ -113,10 +139,18 @@ function Read_IMU_And_LeapDevice
             fprintf("manipulate_leap: %.2fms\t", manipulate_leap_duration)
             tic
         
+        % move motive data up first time
+        if (i == 1)
+            current_start_point = Motive_reading;
+            translation_vector = palm_pos - current_start_point;
+            Motive_Readings = Motive_Readings + translation_vector;
+        end
+
         if (imu_exists + leap_exists == 2)
 
             % transform baton tip
             transformed_baton_tip_pos = [baton_tip_pos(1) + palm_pos(1); baton_tip_pos(2) + palm_pos(2); baton_tip_pos(3) + palm_pos(3)];
+%             motive_pos = [Motive_reading(1) + palm_pos(1); Motive_reading(2) + palm_pos(2); Motive_reading(3) + palm_pos(3)];
 
             % once we get to the sliding window size point, we can slide along the smoothed window.
             if (successful_loops > (data_array_size - smooth_starting_buffer - 1))              
@@ -152,15 +186,15 @@ function Read_IMU_And_LeapDevice
                 % latest 90% ish of data
                 set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_smoothed_array(2,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,(firstNonzeroBatonSmoothIndex+fade_out_size):end));
                 set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,(firstNonzeroBatonRawIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_raw_array(2,(firstNonzeroBatonRawIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_raw_array(3,(firstNonzeroBatonRawIndex+fade_out_size):end));
-                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));
-                
+                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));              
 
                 drawnow
             % but at the beginning, we need to build up the arrays
             else
                 transformed_baton_tip_pos_raw_array(:,(successful_loops+smooth_starting_buffer)) = transformed_baton_tip_pos;
                 palm_pos_whole_array(:,(successful_loops+smooth_starting_buffer)) = palm_pos;
-
+                motive_array(:,successful_loops) = Motive_reading;
+            
                 cols_with_all_zeros = find(all(transformed_baton_tip_pos_raw_array(:, (smooth_starting_buffer+1):end)==0), 1);
     
                 % smooth the raw data array
@@ -173,22 +207,25 @@ function Read_IMU_And_LeapDevice
 
                 % only plot non zero bits
                 firstNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'first');
-                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first');
+                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first')+smooth_starting_buffer;
                 firstNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'first');
+                firstNonzeroMotiveArrayIndex = find(motive_array(1,:), 1, 'first');
 
                 lastNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'last');
                 lastNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'last');
                 lastNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'last');
-                
+                lastNonzeroMotiveArrayIndex = find(motive_array(1,:), 1, 'last');
                 lastNonzeroBatonSmoothIndex = lastNonzeroBatonSmoothIndex - smooth_starting_buffer;
 
 
                 % start after a bit of time
                 if (successful_loops > smooth_starting_buffer)
-%                     disp("updating data!")
-                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex));
+% %                     disp("updating data!")
+                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex));
                     set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
-                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex));
+                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:lastNonzeroPalmIndex));
+%                     set(plts{7}, 'XData', Motive_Readings(2,:), 'YData', Motive_Readings(3,:), 'ZData',  Motive_Readings(4,:));
+                    set(plts_2{1}, 'XData', motive_array(1,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'YData', motive_array(2,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'ZData',  motive_array(3,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex));
                     drawnow
                 end
             end
@@ -199,15 +236,15 @@ function Read_IMU_And_LeapDevice
                 tic
 
             
-            get_frame_durations(all_loops) = get_frame_duration;
-            manipulate_imu_durations(all_loops) = manipulate_imu_duration;
-            manipulate_leap_durations(all_loops) = manipulate_leap_duration;
-            plot_durations(all_loops) = plot_duration;
-            total_durations(all_loops) = total_duration;
+%             get_frame_durations(all_loops) = get_frame_duration;
+%             manipulate_imu_durations(all_loops) = manipulate_imu_duration;
+%             manipulate_leap_durations(all_loops) = manipulate_leap_duration;
+%             plot_durations(all_loops) = plot_duration;
+%             total_durations(all_loops) = total_duration;
             successful_loops = successful_loops + 1;
             
         end
-%         fprintf("total_duration: %.2fms\n", total_duration)
+        fprintf("total_duration: %.2fms\n", total_duration)
         time_left_in_loop = loop_time-total_duration;
 %         fprintf("time left before sleep: %.2fms\t", loop_time-total_duration)
         tic
@@ -220,33 +257,28 @@ function Read_IMU_And_LeapDevice
 
 
     clear t;
-    legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
-    save_graph(myGuidController)
-
-    figure();
-    hold on;
-    plot(get_frame_durations)
-    plot(manipulate_imu_durations)
-    plot(manipulate_leap_durations)
-    plot(plot_durations)
-    plot(total_durations)
-    legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
-
-    function myKeyPressFcn(hObject, event)
-        KEY_IS_PRESSED  = 1;
-        disp('key is pressed')
-    end
+    legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', 'Motive Data', Location='best')
+    save_graph(myGuidController, expID)
+% 
+%     figure();
+%     hold on;
+%     plot(get_frame_durations)
+%     plot(manipulate_imu_durations)
+%     plot(manipulate_leap_durations)
+%     plot(plot_durations)
+%     plot(total_durations)
+%     legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
 
 end
 
-function save_graph(myGuidController)
+function save_graph(myGuidController, expID)
     % get graph details
-    graphDetails = 'Palm Position and Baton tip position - transformed IMU CJMCU-20948 Data Reading and single hand Leap LM-010 Reading';
-    dataset = "Live test data from raw imu reading and raw leap reading. Loop every 20ms, imufilter sample rate 5000. arduino internal delay 200. only plotting last 500 values";
+    graphDetails = 'Palm Position and Baton tip position - transformed IMU CJMCU-20948 Data Reading and single hand Leap LM-010 Reading and Motive (OptiTrack) Reading';
+    dataset = "Test data from raw imu reading and raw leap reading with motive Data scaled and resampled. Loop every 20ms, imufilter sample rate 5000. arduino internal delay 200. only plotting last 500 values";
     folderToSaveIn = 'Visualisations/IMU_Leap_CombinedData';   % Your destination folder
     
     % add to GUID directory
-    descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, dataset, folderToSaveIn, datetime('now'));
+    descriptionToUse = sprintf("Details: %s. Experiment ID: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, expID, mfilename, dataset, folderToSaveIn, datetime('now'));
     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     
     % save all figures
@@ -255,16 +287,18 @@ function save_graph(myGuidController)
 
 end
 
-function [IMU_reading, Leap_reading] = get_frame(s)
+function [IMU_reading, Leap_reading, Motive_reading] = get_frame(i, IMU_readings, Leap_readings, Motive_readings)
     % get IMU data
 %     IMU_reading = fscanf(s);
 %     IMU_reading = read(t);
 
-    IMU_reading
+    IMU_reading = IMU_readings{i};
+
+    Motive_reading = Motive_readings(:,i);
     
     
     % get Leap frame
-    Leap_reading = matleap(1);
+    Leap_reading = Leap_readings{i};
 end
 
 function setGlobalRotm(val)
@@ -281,7 +315,12 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
 %     IMU_reading_str = char(IMU_reading);
 %     disp("maniuplating imu")
 %     [out_array, status] = str2num(IMU_reading_str);
-    [out_array, status] = str2num(IMU_reading);
+    try
+        [out_array, status] = str2num(IMU_reading);
+    catch
+        status = 0;
+    end
+    
 %     disp(status)
 
     if (status && isequal(size(out_array), [3,3]))

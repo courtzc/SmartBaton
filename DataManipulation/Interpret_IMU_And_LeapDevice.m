@@ -174,7 +174,7 @@ function Read_IMU_And_LeapDevice
 
                 % only plot non zero bits
                 firstNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'first');
-                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first');
+                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first')+smooth_starting_buffer;
                 firstNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'first');
 
                 lastNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'last');
@@ -187,9 +187,9 @@ function Read_IMU_And_LeapDevice
                 % start after a bit of time
                 if (successful_loops > smooth_starting_buffer)
 %                     disp("updating data!")
-                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroPalmIndex:lastNonzeroBatonSmoothIndex));
+                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex));
                     set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
-                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroPalmIndex));
+                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:lastNonzeroPalmIndex));
                     drawnow
                 end
             end

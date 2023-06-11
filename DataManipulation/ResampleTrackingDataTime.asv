@@ -1,0 +1,27 @@
+  
+%% input desired experiment
+
+%% calcs
+% get the file of the desired experiment
+fprintf(1, 'Now reading %s\n', expID)
+trackingDataFileName = sprintf("Data\Session02_SimpleCentroidTrackingDataTime\Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid.csv", expID);
+trackingData = readmatrix(trackingDataFileName);
+
+TimesFileName = sprintf("Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_Exp_%s.csv", expID);
+timesData = load(TimesFileName).Times;
+desiredLength = length(timesData)
+
+newTime = linspace(min(trackingData(:, 1)), max(trackingData(:, 1)), desiredLength);
+
+resampled_tracking_data = zeros(desiredLength, 4);
+
+for col = 2:4
+    resampled_tracking_data(:, col) = interp1(trackingData(:, 1), trackingData(:, col), newTime, 'linear');
+end
+
+resampled_tracking_data(:, 1) = newTime;
+
+% save new data
+fileName = sprintf("Data\\Session02_ManipulatedData\\TrackingDataTime_Resampled\\%s_Resampled.mat", currFileName(1:end-4));
+save(fileName, 'resampled_tracking_data');
+

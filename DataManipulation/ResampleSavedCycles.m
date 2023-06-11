@@ -2,7 +2,7 @@
 
 % Get all files of the jth feature
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session01_ManipulatedData\SavedCycles\Session01_Exp_*.mat";
+    "Data\Session02_SimpleCentroidTrackingDataTime\Session02_Exp_11B*.csv";
 
 % collect the files
 theFiles = dir(miniPattern);
@@ -13,9 +13,9 @@ for k = 1:length(theFiles)
    
     % read in cycle from file
     currFileName = theFiles(k).name;
-    withFolders = "Data\Session01_ManipulatedData\SavedCycles\"+currFileName;
+    withFolders = "Data\Session02_SimpleCentroidTrackingDataTime\"+currFileName;
     fprintf(1, 'Now reading %s\n', currFileName)
-    cycle = load(withFolders).tXYZ;
+    cycle = readmatrix(withFolders);
 
     % start the time index from zero
     cycle(:,1) = [cycle(:,1)]-cycle(1,1);
@@ -46,7 +46,7 @@ for k = 1:length(theFiles)
     tXYZ = [t, X, Y, Z];
     
     % save new data
-    fileName = sprintf("Data\\Session01_ManipulatedData\\SavedCycles_Resampled\\%s_Resampled.mat", currFileName(1:end-4));
+    fileName = sprintf("Data\\Session02_ManipulatedData\\TrackingDataTime_Resampled\\%s_Resampled.mat", currFileName(1:end-4));
     save(fileName, 'tXYZ');
 
 end

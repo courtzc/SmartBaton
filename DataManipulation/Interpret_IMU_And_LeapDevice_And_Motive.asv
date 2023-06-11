@@ -7,16 +7,23 @@ function Read_IMU_And_LeapDevice
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
-    rotm0_known = load('Data\IMU_rotm0.mat').averages;
+    rotm0_known = load('Data/IMU_rotm0.mat').averages;
     setGlobalRotm(rotm0_known)
 
     %% file load
-    IMU_and_Leap_filename = "Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_Exp_1.1.B_8-59-10-59-25.mat";
-    exp = "1.1.B";
+    expID = "11B";
+    IMU_and_Leap_filename = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
+    Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Resampled.mat",expID);
 
+
+    Motive_Readings = load(Motive_filename).resampled_tracking_data;
     IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
     Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
     Times = load(IMU_and_Leap_filename).Times;
+    
+
+
+%     plot3(Motive_Readings((i:i+1),1), Motive_Readings((i:i+1),2), Motive_Readings((i:i+1),3)
 
 
     %% inputs
@@ -34,7 +41,7 @@ function Read_IMU_And_LeapDevice
 
     % get handles to figure
     fig_handle=subplot(1,1,1);
-    plts = cell(1,6);
+    plts = cell(1,7);
 
     % initialise plot
     hold on;
@@ -62,6 +69,10 @@ function Read_IMU_And_LeapDevice
     plts{5} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{3});
     plts{6} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{6}, LineWidth=4);
 
+    plts{7} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{4}, LineWidth=3);
+
+
+
     % smooth data buffer
     smooth_starting_buffer = 10;
 
@@ -88,12 +99,15 @@ function Read_IMU_And_LeapDevice
     manipulate_leap_duration = 0;
     plot_duration = 0;
 
+                set(plts{7}, 'XData', Motive_Readings, 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));
+
+
     for i = 1:length(Times)
         tic
         total_duration = 0;
     
         % get frames
-        [IMU_reading, Leap_reading] = get_frame(i, IMU_Readings, Leap_Readings);
+        [IMU_reading, Leap_reading, Motive_reading] = get_frame(i, IMU_Readings, Leap_Readings, Motive_Readings);
 %         [IMU_reading, Leap_reading] = get_frame(t);
             get_frame_duration = toc*1000;
             total_duration = total_duration + get_frame_duration;
@@ -153,8 +167,7 @@ function Read_IMU_And_LeapDevice
                 % latest 90% ish of data
                 set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_smoothed_array(2,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,(firstNonzeroBatonSmoothIndex+fade_out_size):end));
                 set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,(firstNonzeroBatonRawIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_raw_array(2,(firstNonzeroBatonRawIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_raw_array(3,(firstNonzeroBatonRawIndex+fade_out_size):end));
-                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));
-                
+                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));              
 
                 drawnow
             % but at the beginning, we need to build up the arrays
@@ -251,12 +264,14 @@ function save_graph(myGuidController)
 
 end
 
-function [IMU_reading, Leap_reading] = get_frame(i, IMU_readings, Leap_readings)
+function [IMU_reading, Leap_reading, Motive_reading] = get_frame(i, IMU_readings, Leap_readings, Motive_readings)
     % get IMU data
 %     IMU_reading = fscanf(s);
 %     IMU_reading = read(t);
 
     IMU_reading = IMU_readings{i};
+
+    Motive_reading = Motive_readings(2:4,i)
     
     
     % get Leap frame

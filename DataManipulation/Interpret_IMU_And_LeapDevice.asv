@@ -7,15 +7,14 @@ function Read_IMU_And_LeapDevice
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
-    rotm0_known = load('Data\IMU_rotm0.mat').averages;
+    rotm0_known = load('../Data/IMU_rotm0.mat').averages;
     setGlobalRotm(rotm0_known)
 
     %% file load
-    IMU_and_Leap_filename = "Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_Exp_1.1.B_8-59-10-59-25.mat";
-    exp = "1.1.B";
+    IMU_and_Leap_filename = "Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_1.1.A_8-45-09-45-02.mat";
 
-    IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
-    Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
+    IMU_Readings = load(IMU_and_Leap_filename).IMU_Readings;
+    Leap_Readings = load(IMU_and_Leap_filename).Leap_Readings;
     Times = load(IMU_and_Leap_filename).Times;
 
 
@@ -39,7 +38,7 @@ function Read_IMU_And_LeapDevice
     % initialise plot
     hold on;
     axis equal;
-    titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from Calibration Exp %s", exp);
+    titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from IMU %s", datetime('now'));
     title(titleName)
     view(2)
     colourAlt = {'#5A5A5A', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
@@ -88,12 +87,12 @@ function Read_IMU_And_LeapDevice
     manipulate_leap_duration = 0;
     plot_duration = 0;
 
-    for i = 1:length(Times)
+    for i = 1:200
         tic
         total_duration = 0;
     
         % get frames
-        [IMU_reading, Leap_reading] = get_frame(i, IMU_Readings, Leap_Readings);
+        [IMU_reading, Leap_reading] = get_frame(s);
 %         [IMU_reading, Leap_reading] = get_frame(t);
             get_frame_duration = toc*1000;
             total_duration = total_duration + get_frame_duration;
@@ -208,7 +207,7 @@ function Read_IMU_And_LeapDevice
             successful_loops = successful_loops + 1;
             
         end
-        fprintf("total_duration: %.2fms\n", total_duration)
+%         fprintf("total_duration: %.2fms\n", total_duration)
         time_left_in_loop = loop_time-total_duration;
 %         fprintf("time left before sleep: %.2fms\t", loop_time-total_duration)
         tic
@@ -221,7 +220,7 @@ function Read_IMU_And_LeapDevice
 
 
     clear t;
-    legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='best')
+    legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', Location='northeast')
     save_graph(myGuidController)
 
     figure();
@@ -232,6 +231,11 @@ function Read_IMU_And_LeapDevice
     plot(plot_durations)
     plot(total_durations)
     legend('get frame', 'manipulate imu', 'manipulate leap', 'plot', 'total')
+
+    function myKeyPressFcn(hObject, event)
+        KEY_IS_PRESSED  = 1;
+        disp('key is pressed')
+    end
 
 end
 
@@ -251,16 +255,16 @@ function save_graph(myGuidController)
 
 end
 
-function [IMU_reading, Leap_reading] = get_frame(i, IMU_readings, Leap_readings)
+function [IMU_reading, Leap_reading] = get_frame(s)
     % get IMU data
 %     IMU_reading = fscanf(s);
 %     IMU_reading = read(t);
 
-    IMU_reading = IMU_readings{i};
+    IMU_reading
     
     
     % get Leap frame
-    Leap_reading = Leap_readings{i};
+    Leap_reading = matleap(1);
 end
 
 function setGlobalRotm(val)
@@ -277,12 +281,7 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
 %     IMU_reading_str = char(IMU_reading);
 %     disp("maniuplating imu")
 %     [out_array, status] = str2num(IMU_reading_str);
-    try
-        [out_array, status] = str2num(IMU_reading);
-    catch
-        status = 0;
-    end
-    
+    [out_array, status] = str2num(IMU_reading);
 %     disp(status)
 
     if (status && isequal(size(out_array), [3,3]))

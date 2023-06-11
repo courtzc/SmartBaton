@@ -23,7 +23,7 @@ function Read_IMU_And_LeapDevice
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
-    rotm0_known = load('IMU_rotm0.mat').averages;
+    rotm0_known = load('../Data/IMU_rotm0.mat').averages;
     setGlobalRotm(rotm0_known)
 
 

@@ -1,7 +1,7 @@
 %% note
 % press and hold key to finish the data capture and visualisation
 
-function Read_IMU_And_LeapDevice
+function Interpret_IMU_And_LeapDevice
     myGuidController = GUID_Controller;
     close all;
 

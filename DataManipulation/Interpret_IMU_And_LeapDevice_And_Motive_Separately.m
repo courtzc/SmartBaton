@@ -11,7 +11,11 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     setGlobalRotm(rotm0_known)
 
     %% file load
-    expID = "31B";
+    expID = "41C";
+    expDescription = "4/4 bar, 76bpm, 4 bars, mf";
+    sgTitleName = sprintf("Calibration Experiment %s (%s)", expID, expDescription);
+    motiveStartBuffer = 1;
+
     IMU_and_Leap_filename = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
     Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Resampled_Scaled_Rotated.mat",expID);
 
@@ -36,53 +40,60 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     data_array_size = 1000;
 
     % how much of a fade out would you like on the tail?
-    fade_out_size = 300; % the earliest n bits of data that aren't zero get faded out. the nth onwards, from the nonzero index, is plotted normally.
+    fade_out_size = 500; % the earliest n bits of data that aren't zero get faded out. the nth onwards, from the nonzero index, is plotted normally.
     
     %% plot
 
     % get handles to figure
+    figure('Position', [300 300 1200 600]);
     fig_handle=subplot(1,2,1);
-    plts = cell(1,6);
+%     fig_handle.Position = fig_handle.Position + [0 0 0.5 0]; % increase width
+    plts = cell(1,3);
 
     % initialise plot
     hold on;
     axis equal;
-    titleName = sprintf("Leap Palm Positional Data & Baton Tip Pos from Calibration Exp %s", expID);
+    titleName = sprintf("System - Leap Palm Pos (Grey) & Baton Tip Pos (Blue)");
     title(titleName)
     view(2)
     colourAlt = {'#5A5A5A', '#B33300', '#00B3E6',  '#E6B333', '#80B300', '#3366E6', '#FF99E6', '#33FFCC', '#B366CC', '#4D8000', '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399', '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680',  '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933', '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3',  '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'};
     colourAlt1Fade = '#BEBEBE'; % checked by making a lighter version of #5A5A5A in word
     colourAlt3Fade = '#A3EBFF'; % checked by making a lighter version of #00B3E6 in word
     colourAlt6Fade = '#C4D3F8'; % checked by making a lighter version of #3366E6 in word
-
+%     legend({'Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position'}, Location='best');
+    
+    
     xlabel('x')
     ylabel('y (leap z)')
     zlabel('z (leap y)')
 
     %% set up the plot3s of the palm data, baton tip data, and smoothed baton tip data.
     % set up the fade plots - must go first to be at the back
-    plts{1} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt1Fade,'linewidth',2);
-    plts{2} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt3Fade);
-    plts{3} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt6Fade, LineWidth=4);
+%     plts{1} = plot3(fig_handle,NaN,NaN,NaN,'color', colourAlt1Fade,'linewidth',2);
+%     plts{2} = plot3(fig_handle,NaN,NaN, NaN, 'color', colourAlt3Fade);
+%     plts{3} = plot3(fig_handle,NaN, NaN, NaN, 'color', colourAlt6Fade, LineWidth=4);
 
     % set up the main plots
-    plts{4} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{1},'linewidth',2);
-    plts{5} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{3});
-    plts{6} = plot3(fig_handle,[0,1],[0,1],[0,1],'color', colourAlt{6}, LineWidth=4);
+    plts{1} = plot3(fig_handle,NaN, NaN, NaN, 'color', colourAlt{1},'linewidth',2);
+    plts{2} = plot3(fig_handle,NaN, NaN, NaN, 'color', colourAlt{3});
+    plts{3} = plot3(fig_handle,NaN, NaN, NaN, 'color', colourAlt{6}, LineWidth=4);
 
     
 
     % second plot
     fig_handle_2=subplot(1,2,2);
+%     fig_handle_2.Position = fig_handle_2.Position + [0 0 0.5 0]; % increase width
     plts_2 = cell(1,1);
     % initialise plot
     hold on;
     axis equal;
-    titleName = sprintf("Motive Data from Calibration Exp %s", expID);
+    titleName = sprintf("Motive - Baton Tip Data (Green)");
     title(titleName)
     view(2)
-    plts_2{1} = plot3(fig_handle_2,[0,1],[0,1],[0,1],'color', colourAlt{21}, LineWidth=3);
+    plts_2{1} = plot3(fig_handle_2,NaN, NaN, NaN, 'color', colourAlt{21}, LineWidth=3);
+%     legend({'Baton Tip Position'}, Location='best');
 
+    sgtitle(sgTitleName)
     % smooth data buffer
     smooth_starting_buffer = 10;
 
@@ -99,16 +110,16 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     successful_loops = 1;
     all_loops = 0;
 
-    get_frame_durations = zeros(500);
-    manipulate_imu_durations = zeros(500);
-    manipulate_leap_durations = zeros(500);
-    plot_durations = zeros(500);
-    total_durations = zeros(500);
-
-    get_frame_duration = 0;
-    manipulate_imu_duration = 0;
-    manipulate_leap_duration = 0;
-    plot_duration = 0;
+%     get_frame_durations = zeros(500);
+%     manipulate_imu_durations = zeros(500);
+%     manipulate_leap_durations = zeros(500);
+%     plot_durations = zeros(500);
+%     total_durations = zeros(500);
+% 
+%     get_frame_duration = 0;
+%     manipulate_imu_duration = 0;
+%     manipulate_leap_duration = 0;
+%     plot_duration = 0;
 
 
 
@@ -178,15 +189,15 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
                 
                 % note: fade data first so it's at the back
                 % earliest little bit of data to fade
-                set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)));
-                set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)));
-                set(plts{1}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)));
-                
+%                 set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:(firstNonzeroBatonSmoothIndex+fade_out_size)));
+%                 set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:(firstNonzeroBatonRawIndex+fade_out_size)));
+%                 set(plts{1}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:(firstNonzeroPalmIndex+fade_out_size)));
+%                 
 
                 % latest 90% ish of data
-                set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_smoothed_array(2,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,(firstNonzeroBatonSmoothIndex+fade_out_size):end));
-                set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,(firstNonzeroBatonRawIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_raw_array(2,(firstNonzeroBatonRawIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_raw_array(3,(firstNonzeroBatonRawIndex+fade_out_size):end));
-                set(plts{4}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));              
+                set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_smoothed_array(2,(firstNonzeroBatonSmoothIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,(firstNonzeroBatonSmoothIndex+fade_out_size):end));
+                set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,(firstNonzeroBatonRawIndex+fade_out_size):end), 'YData', transformed_baton_tip_pos_raw_array(2,(firstNonzeroBatonRawIndex+fade_out_size):end), 'ZData',  transformed_baton_tip_pos_raw_array(3,(firstNonzeroBatonRawIndex+fade_out_size):end));
+                set(plts{1}, 'XData', palm_pos_whole_array(1,(firstNonzeroPalmIndex+fade_out_size):end), 'YData', palm_pos_whole_array(2,(firstNonzeroPalmIndex+fade_out_size):end), 'ZData',  palm_pos_whole_array(3,(firstNonzeroPalmIndex+fade_out_size):end));              
 
                 drawnow
             % but at the beginning, we need to build up the arrays
@@ -210,22 +221,40 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
                 firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first')+smooth_starting_buffer;
                 firstNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'first');
                 firstNonzeroMotiveArrayIndex = find(motive_array(1,:), 1, 'first');
+                firstNonzeroMotiveArrayIndex = firstNonzeroMotiveArrayIndex + motiveStartBuffer;
 
                 lastNonzeroPalmIndex = find(palm_pos_whole_array(1,:), 1, 'last');
                 lastNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'last');
                 lastNonzeroBatonRawIndex = find(transformed_baton_tip_pos_raw_array(1,:), 1, 'last');
                 lastNonzeroMotiveArrayIndex = find(motive_array(1,:), 1, 'last');
                 lastNonzeroBatonSmoothIndex = lastNonzeroBatonSmoothIndex - smooth_starting_buffer;
-
+                
+                % display the index vectors
+%                 fprintf("\n")
+%                 disp("transformed_baton_tip_pos_smoothed_array: ")
+%                 disp(transformed_baton_tip_pos_smoothed_array(:,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex));
+%                 
+%                 disp("transformed_baton_tip_pos_raw_array: ")
+%                 disp(transformed_baton_tip_pos_raw_array(:,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
+%                 
+%                 disp("palm_pos_whole_array: ")
+%                 disp(palm_pos_whole_array(:,firstNonzeroPalmIndex:lastNonzeroPalmIndex));
+%                 
+%                 disp("motive_array: ")
+%                 disp(motive_array(:,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex));
 
                 % start after a bit of time
                 if (successful_loops > smooth_starting_buffer)
-% %                     disp("updating data!")
-                    set(plts{6}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex));
-                    set(plts{5}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
-                    set(plts{4}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:lastNonzeroPalmIndex));
+%                     disp("updating data!")
+                    if(lastNonzeroBatonSmoothIndex > firstNonzeroBatonSmoothIndex)
+                        set(plts{3}, 'XData', transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'YData', transformed_baton_tip_pos_smoothed_array(2,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex), 'ZData',  transformed_baton_tip_pos_smoothed_array(3,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex));
+                    end
+                    set(plts{2}, 'XData', transformed_baton_tip_pos_raw_array(1,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'YData', transformed_baton_tip_pos_raw_array(2,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex), 'ZData',  transformed_baton_tip_pos_raw_array(3,firstNonzeroBatonRawIndex:lastNonzeroBatonRawIndex));
+                    set(plts{1}, 'XData', palm_pos_whole_array(1,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'YData', palm_pos_whole_array(2,firstNonzeroPalmIndex:lastNonzeroPalmIndex), 'ZData',  palm_pos_whole_array(3,firstNonzeroPalmIndex:lastNonzeroPalmIndex));
 %                     set(plts{7}, 'XData', Motive_Readings(2,:), 'YData', Motive_Readings(3,:), 'ZData',  Motive_Readings(4,:));
-                    set(plts_2{1}, 'XData', motive_array(1,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'YData', motive_array(2,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'ZData',  motive_array(3,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex));
+%                     if (successful_loops > smooth_starting_buffer+10)                    
+                        set(plts_2{1}, 'XData', motive_array(1,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'YData', motive_array(2,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex), 'ZData',  motive_array(3,firstNonzeroMotiveArrayIndex:lastNonzeroMotiveArrayIndex));
+%                     end
                     drawnow
                 end
             end
@@ -257,8 +286,9 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
 
 
     clear t;
-    legend('Palm Position', 'Baton Tip Position', 'Smoothed Baton Tip Position', 'Motive Data', Location='best')
-    save_graph(myGuidController, expID)
+
+    
+    save_graph(myGuidController, expID, transformed_baton_tip_pos_smoothed_array)
 % 
 %     figure();
 %     hold on;
@@ -271,9 +301,9 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
 
 end
 
-function save_graph(myGuidController, expID)
+function save_graph(myGuidController, expID, transformed_baton_tip_pos_smoothed_array)
     % get graph details
-    graphDetails = 'Palm Position and Baton tip position - transformed IMU CJMCU-20948 Data Reading and single hand Leap LM-010 Reading and Motive (OptiTrack) Reading';
+    graphDetails = sprintf('Palm Position and Baton tip position - transformed IMU CJMCU-20948 Data Reading and single hand Leap LM-010 Reading and Motive (OptiTrack) Reading experiment %s', expID);
     dataset = "Test data from raw imu reading and raw leap reading with motive Data scaled and resampled. Loop every 20ms, imufilter sample rate 5000. arduino internal delay 200. only plotting last 500 values";
     folderToSaveIn = 'Visualisations/IMU_Leap_CombinedData';   % Your destination folder
     
@@ -282,6 +312,8 @@ function save_graph(myGuidController, expID)
     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     
     % save all figures
+    fileName = sprintf("Data/Session02_SmoothBatonPosition/Smooth_Baton_Pos_%s", expID);
+    save(fileName, 'transformed_baton_tip_pos_smoothed_array');
     FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
     myGuidController.saveFigures(graphDetails, GUIDToAppend, FigList, folderToSaveIn);
 

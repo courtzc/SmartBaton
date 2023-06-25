@@ -40,7 +40,7 @@ function Raw_Data_Collection_IMU_And_LeapDevice
         [IMU_reading, Leap_reading] = get_frame(s);
         IMU_readings{num_loops} = IMU_reading;
         Leap_readings{num_loops} = Leap_reading;
-        Times(num_loops) = (java.lang.System.currentTimeMillis() - javaStartTime) / 1000;
+        Times(num_loops) = java.lang.System.currentTimeMillis();
         
         get_frame_duration = toc*1000; 
         fprintf("duration: %.2f", get_frame_duration)
@@ -52,7 +52,7 @@ function Raw_Data_Collection_IMU_And_LeapDevice
 
         num_loops = num_loops + 1;
     end
-    timeNow = datetime('now','TimeZone','local','Format','d-mm-HH-mm-ss');
+    timeNow = datetime('now','TimeZone','local','Format','d-mm-HH-mm-ss-SSS');
     filename = sprintf("Raw_IMU_and_Leap_%s_%s.mat", ExperimentCode, string(timeNow));
     save(filename, 'Times', 'IMU_readings', 'Leap_readings');
 

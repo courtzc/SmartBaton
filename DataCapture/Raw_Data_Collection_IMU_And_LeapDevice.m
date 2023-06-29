@@ -3,35 +3,36 @@
 
 function Raw_Data_Collection_IMU_And_LeapDevice
 
-    % IMU config
-    if (~isempty(instrfindall))
-        fclose(instrfindall);
-        delete(instrfindall);
-    end
-    
-    s = serialport('COM12', 115200); % change this to desired Arduino board port
-    set(s,'BaudRate',115200); % baud rate for communication
-
-    fopen(s); % open the comm between Arduino and MATLAB
-
-    sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
-    FUSE = imufilter('SampleRate',sample_rate);
-
-    %% data array size - how many loops?
-    data_array_size = 400;
-
-    ExperimentCode = "Exp_4.2.E";
-
-    %% initialise arrays
-    IMU_readings = cell(data_array_size, 1);
-    Leap_readings = cell(data_array_size, 1);
-    Times = zeros(data_array_size, 1);
-
-    % how often the loop runs
-    loop_time = 20; %ms
-    num_loops = 1;
+%     % IMU config
+%     if (~isempty(instrfindall))
+%         fclose(instrfindall);
+%         delete(instrfindall);
+%     end
+%     
+%     s = serialport('COM12', 115200); % change this to desired Arduino board port
+%     set(s,'BaudRate',115200); % baud rate for communication
+% 
+%     fopen(s); % open the comm between Arduino and MATLAB
+% 
+%     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
+%     FUSE = imufilter('SampleRate',sample_rate);
+% 
+%     %% data array size - how many loops?
+%     data_array_size = 400;
+% 
+%     ExperimentCode = "Exp_4.2.E";
+% 
+%     %% initialise arrays
+%     IMU_readings = cell(data_array_size, 1);
+%     Leap_readings = cell(data_array_size, 1);
+%     Times = zeros(data_array_size, 1);
+% 
+%     % how often the loop runs
+%     loop_time = 20; %ms
+%     num_loops = 1;
 
     javaStartTime = java.lang.System.currentTimeMillis();
+    fprintf("%.8f", javaStartTime)
 
     for i = 1:data_array_size
         fprintf("loop number: %d\n", num_loops);

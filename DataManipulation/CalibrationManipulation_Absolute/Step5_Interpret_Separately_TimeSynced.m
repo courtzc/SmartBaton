@@ -1,9 +1,9 @@
 %% note
 % press and hold key to finish the data capture and visualisation
 
-function Interpret_IMU_And_LeapDevice_And_Motive_Separately
+function Step5_Interpret_Separately_TimeSynced
     myGuidController = GUID_Controller;
-    close all;
+%     close all;
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
@@ -11,20 +11,20 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     setGlobalRotm(rotm0_known)
 
     %% file load
-    expID = "4A";
-    expDescription = "90 degrees rotation right and return 3 times";
+    expID = "11B";
+    expDescription = "4/4 bar, 76bpm, 4 bars, mf";
     sgTitleName = sprintf("Calibration Experiment %s (%s)", expID, expDescription);
     motiveStartBuffer = 1;
 
-    IMU_and_Leap_filename = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
-    Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Resampled_Scaled_Rotated.mat",expID);
+    IMU_and_Leap_filename = sprintf("Data/Session02_IMU_Data_Cut/Raw_IMU_and_Leap_Exp_%s_cut.mat",expID);
+    Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingData_AbsoluteTime_Resampled_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_AbsoluteTimeCut_Resampled_Scaled_Rotated.mat",expID);
 
 
     Motive_Readings = load(Motive_filename).rotated_tracking_data';
     Motive_Readings = Motive_Readings(2:4,:);
-    IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
-    Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
-    Times = load(IMU_and_Leap_filename).Times;
+    IMU_Readings = load(IMU_and_Leap_filename).IMU_readings_cut;
+    Leap_Readings = load(IMU_and_Leap_filename).Leap_readings_cut;
+    Times = load(IMU_and_Leap_filename).Times_cut;
     
 
 

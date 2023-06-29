@@ -3,7 +3,7 @@
 
 function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     myGuidController = GUID_Controller;
-    close all;
+%     close all;
 
     sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
     FUSE = imufilter('SampleRate',sample_rate);
@@ -11,7 +11,7 @@ function Interpret_IMU_And_LeapDevice_And_Motive_Separately
     setGlobalRotm(rotm0_known)
 
     %% file load
-    expID = "41C";
+    expID = "11B";
     expDescription = "4/4 bar, 76bpm, 4 bars, mf";
     sgTitleName = sprintf("Calibration Experiment %s (%s)", expID, expDescription);
     motiveStartBuffer = 1;

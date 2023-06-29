@@ -47,6 +47,7 @@ classdef GUID_Controller
               pngName   = pngSaveTitle;
               fprintf("now saving: %s\n", FigName)
               saveas(FigHandle, fullfile(folderToSaveIn, FigName));
+              fprintf("now saving: %s\n", pngName)
               saveas(FigHandle, fullfile(folderToSaveIn, pngName));
             end
         end

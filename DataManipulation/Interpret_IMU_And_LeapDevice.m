@@ -11,8 +11,8 @@ function Interpret_IMU_And_LeapDevice
     setGlobalRotm(rotm0_known)
 
     %% file load
-    IMU_and_Leap_filename = "Data\Session02_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_Exp_1.1.B_8-59-10-59-25.mat";
-    exp = "1.1.B";
+    IMU_and_Leap_filename = "Data\Session03_RawData\IMU_Leap_Data\Raw_IMU_and_Leap_Exp_42E.mat";
+    exp = "42E";
 
     IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
     Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;

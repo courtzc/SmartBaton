@@ -13,8 +13,8 @@ function Step2_ResampleTrackingData_AbsoluteTime
         %% calcs
         % get the file of the desired experiment
         fprintf(1, 'Now reading %s\n', expID)
-        trackingDataShortFileName = sprintf("Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_AbsoluteTimeCut", expID);
-        trackingDataFileName = sprintf("Data/Session02_SimpleCentroidTrackingData_AbsoluteTime/%s.csv", trackingDataShortFileName);
+        trackingDataShortFileName = sprintf("Session03_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_AbsoluteTimeCut", expID);
+        trackingDataFileName = sprintf("Data/Session03_SimpleCentroidTrackingData_AbsoluteTime/%s.csv", trackingDataShortFileName);
         rawTrackingData = readmatrix(trackingDataFileName);
         trackingData = rawTrackingData(:,2:5);
         rawTrackingData = trackingData;
@@ -51,7 +51,7 @@ function Step2_ResampleTrackingData_AbsoluteTime
         plot(rawTrackingData(:,2), rawTrackingData(:,3), 'Color','b')
         plot(resampled_tracking_data(:,2), resampled_tracking_data(:,3), 'Color','r')
         legend('rawTrackingData', 'resampled_tracking_data')
-        
+
         % save new data
         fileName = sprintf("Data/Session02_ManipulatedData/TrackingData_AbsoluteTime_Resampled/%s_Resampled.mat", trackingDataShortFileName);
         save(fileName, 'resampled_tracking_data');

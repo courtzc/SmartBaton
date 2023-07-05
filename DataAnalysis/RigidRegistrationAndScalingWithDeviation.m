@@ -42,8 +42,8 @@ for j = 1:length(letters)
     
     % transform the 'moving' points
     movingReg = pctransform(pointCloud(moving),tform);
-    movingRegScaled = movingReg.Location * scaleFactor;
-    
+%     movingRegScaled = movingReg.Location * scaleFactor;
+    movingRegScaled = movingReg.Location;
     % shift movingRegScaled and fixed so the array starts at the highest point:
     movingRegScaledShifted = rearrangePoints(movingRegScaled);
     fixedShifted = rearrangePoints(fixed);

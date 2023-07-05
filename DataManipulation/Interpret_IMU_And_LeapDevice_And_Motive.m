@@ -1,7 +1,7 @@
 %% note
 % press and hold key to finish the data capture and visualisation
 
-function Read_IMU_And_LeapDevice
+function Interpret_IMU_And_LeapDevice_And_Motive
     myGuidController = GUID_Controller;
     close all;
 
@@ -331,7 +331,7 @@ function [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_l
             baton_tip_pos = rotm0(:,2) .* baton_length;
         else
             %% transform baton tip pose
-            rotm = rotm0\quat2rotm(orientation_quarternion);
+            rotm = rotm0\quat2rotm(orientation_quarternion)
             baton_tip_pos = rotm(:,2) .* baton_length;
         end
 

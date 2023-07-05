@@ -1,6 +1,6 @@
   
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session02_SimpleCentroidTrackingDataTime\*.csv";
+    "Data\Session02_SimpleCentroidTrackingDataTime\*13A*.csv";
 
 theFiles = dir(miniPattern);
 
@@ -18,20 +18,20 @@ for i = 1:length(theFiles)
     trackingData = readmatrix(trackingDataFileName);
     
     % get time data - how many data points, last point in time
-    TimesFileName = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat", expID);
-    timesData = load(TimesFileName).Times;
-    desiredLength = length(timesData);
-    lastDataPointTime = timesData(end);
-    
-    % cut the motive data to finish at the same time as the other data
-    trackingDataTimes = trackingData(:,1);
-    indices = find(trackingDataTimes > lastDataPointTime);
-    
-    if ~isempty(indices)
-        finalDataPoint = indices(1)
-        trackingData = trackingData(1:finalDataPoint, :);
-    end
-    
+%     TimesFileName = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat", expID);
+%     timesData = load(TimesFileName).Times;
+%     desiredLength = length(timesData);
+%     lastDataPointTime = timesData(end);
+%     
+%     % cut the motive data to finish at the same time as the other data
+%     trackingDataTimes = trackingData(:,1);
+%     indices = find(trackingDataTimes > lastDataPointTime);
+%     
+%     if ~isempty(indices)
+%         finalDataPoint = indices(1)
+%         trackingData = trackingData(1:finalDataPoint, :);
+%     end
+%     
     % resample the motive data
     newTime = linspace(min(trackingData(:, 1)), max(trackingData(:, 1)), desiredLength);
     

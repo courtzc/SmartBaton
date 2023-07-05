@@ -3,20 +3,38 @@ myGuidController = GUID_Controller;
 close all;
 
 %% file load
-expID = "13A";
+expID = "11B";
 Smooth_Baton_filename = sprintf("Data/Session02_SmoothBatonPosition/Smooth_Baton_Pos_%s.mat",expID);
-Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Resampled_Scaled_Rotated.mat",expID);
+% just scaled
+Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingData_ManualTime_Scaled/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Scaled.mat",expID);
+Motive_Readings = load(Motive_filename).scaled_tracking_data;
 
-amountCutBeginning = 40;
-amountCutEnd = 30;
+% rotated as well
+% Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingData_ManualTime_Scaled_Rotated/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Scaled_Rotated.mat",expID);
+% Motive_Readings = load(Motive_filename).rotated_tracking_data;
 
-Motive_Readings = load(Motive_filename).rotated_tracking_data;
+% IMU_and_Leap_filename = sprintf("Data/Session02_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
+% Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingData_ManualTime_Scaled/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_Scaled.mat",expID);
+amountCutMotiveBeginning = 50;
+amountCutMotiveEnd = 150;
+
+amountCutIMUBeginning = 20;
+amountCutIMUEnd = 50;
+
+
+
+% read in data
+% Motive_Readings = load(Motive_filename).scaled_tracking_data;
 Motive_Readings = Motive_Readings(:,2:4);
-Motive_Readings = Motive_Readings(10:end,:);
+lengthbefore = length(Motive_Readings);
 Smooth_Baton_Readings = load(Smooth_Baton_filename).transformed_baton_tip_pos_smoothed_array;
-Smooth_Baton_Readings = Smooth_Baton_Readings(:,amountCutBeginning:(end-amountCutEnd));
 
+% cut data up
+Motive_Readings = Motive_Readings(amountCutMotiveBeginning:(end-amountCutMotiveEnd),:);
+Smooth_Baton_Readings = Smooth_Baton_Readings(:,amountCutIMUBeginning:(end-amountCutIMUEnd));
+lengthafter = length(Motive_Readings);
 desired_num_points = length(Smooth_Baton_Readings(1,:));
+fprintf("before: %d. after: %d\n", lengthbefore, lengthafter);
 
 % Calculate the resampling factor
 resampling_factor = size(Motive_Readings, 1) / desired_num_points;
@@ -35,10 +53,16 @@ end
 fixed = Motive_Readings_Resampled;
 moving = Smooth_Baton_Readings';
 tform = pcregistericp(pointCloud(moving),pointCloud(fixed));
-movingReg = pctransform(pointCloud(moving),tform).Location;
 
-handle1 = figure
-handle1.Position = [300,200,600,700]
+scaleFactor = mean(sqrt(sum(fixed.^2,2))) / mean(sqrt(sum(moving.^2,2)))
+% moving = moving * scaleFactor;
+% transform the 'moving' points
+movingReg = pctransform(pointCloud(moving),tform);
+movingRegScaled = movingReg.Location;
+% movingRegScaled = movingReg.Location * scaleFactor;
+
+handle1 = figure;
+handle1.Position = [600,100,600,700];
                % Enable overlaying plots
 
 % set(gca, 'xtick', [], 'ytick', [])
@@ -51,15 +75,15 @@ subplot('Position', pos1)
 axis equal
 hold on;    
 view(2)
-titleName = sprintf("Point Cloud Registration (first %d and last %d points not included)", amountCutBeginning, amountCutEnd);
+titleName = sprintf("PCR (without 1st %d and last %d points of IMU - 1st %d and last %d points of Motive)", amountCutIMUBeginning, amountCutIMUEnd, amountCutMotiveBeginning, amountCutMotiveEnd);
 title(titleName)
 
 plot3(fixed(:, 1), fixed(:, 2), fixed(:, 3),'Color', '#656565' ,'LineWidth', 2.5);
-plot3(movingReg(:, 1), movingReg(:, 2), movingReg(:, 3),'Color', '#7F58AF','LineWidth', 2.5);
+plot3(movingRegScaled(:, 1), movingRegScaled(:, 2), movingRegScaled(:, 3),'Color', '#7F58AF','LineWidth', 2.5);
 legend({'Motive Reading', 'System Reading'}, 'Location','best')
 
 % get distances
-dists = vecnorm(fixed - movingReg, 2, 2);
+dists = vecnorm(fixed - movingRegScaled, 2, 2);
 legendDeviation = sprintf("Deviation (max: %.2f)", max(dists));
 
 
@@ -79,7 +103,7 @@ sgtitle(sgTitleName)
 
 
 % get graph details
-graphDetails = sprintf('Rigid Registration - Session02_SmoothBatonPosition - %s - Euclidean distance underneath', expID);
+graphDetails = sprintf('Rigid Registration %s - Session02_SmoothBatonPosition - %s - Euclidean distance underneath', titleName, expID);
 dataset = sprintf("reference: Session02_ManipulatedData/TrackingDataTime_Resampled_Scaled_Rotated/Session02_Exp%s_BBaton_etc. data: Session02_SmoothBatonPosition/SavedCycles_Resampled/Smooth_Baton_Pos_%s", expID, expID);
 folderToSaveIn = 'Visualisations/CalibrationAnalysis';   % Your destination folder
 

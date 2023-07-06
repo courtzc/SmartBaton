@@ -18,6 +18,8 @@ function Step3_IndividualPathCyclesTimeThreshold
     
     % get the file name + read in the file
         simpleFileName = theFiles(k).name;
+%         filenameCheck = theFiles(i).name;
+        expID = simpleFileName(15:17);
         fullFileName = fullfile(theFiles(k).folder, simpleFileName);
         
         fprintf(1, 'Now reading %s\n', simpleFileName);

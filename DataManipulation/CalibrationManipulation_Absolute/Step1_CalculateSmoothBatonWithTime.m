@@ -1,88 +1,114 @@
 function Step1_CalculateSmoothBatonWithTime
 
-    sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
-    FUSE = imufilter('SampleRate',sample_rate);
-    rotm0_known = load('Data/IMU_rotm0.mat').averages;
-    setGlobalRotm(rotm0_known)
 
-    %% file load
-    expID = "A1_001_System";
+    miniPattern = "C:\Users\Court\source\repos\ThesisProject\" + ...
+        "Data\Session03_RawData\IMU_Leap_Data\*42E*.mat";
+        
+    % collect the files
+    theFiles = dir(miniPattern);
     
-    IMU_and_Leap_filename = sprintf("Data/Session04_RawData/Raw_IMU_and_Leap_Exp_%s.mat", expID);
-%     IMU_and_Leap_filename = sprintf("Data/Session03_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
-
-    IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
-    Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
-    Times = load(IMU_and_Leap_filename).Times;
+        
     
+    for k = 1:length(theFiles)
 
-    %% inputs
-    % how long is your baton?
-    baton_length = 120;
 
-    % this is high for now
-    data_array_size = 10000;
+        simpleFileName = theFiles(k).name;
+        fullFileName = fullfile(theFiles(k).folder, simpleFileName);
+        expID = simpleFileName(22:24);
+        
+        fprintf(1, 'Now reading %s\n', simpleFileName);
+        IMU_and_Leap_filename = "Data\Session03_RawData\IMU_Leap_Data\"+simpleFileName;
+%         PosData = load(withFolders).tXYZ_System;
+        IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
+        Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
+        Times = load(IMU_and_Leap_filename).Times;
 
-    % smooth data buffer
-    smooth_starting_buffer = 10;
 
-    % initialise arrays
-    transformed_baton_tip_pos_raw_array = zeros(3,data_array_size);
-    raw_array_times = zeros(1,data_array_size);
+        sample_rate = 5000; % this is a weird number and seems to need to be 1000 times more than the Hz.
+        FUSE = imufilter('SampleRate',sample_rate);
+        rotm0_known = load('Data/IMU_rotm0.mat').averages;
+        setGlobalRotm(rotm0_known)
     
-    % loop counters
-    successful_loops = 1;
-    all_loops = 0;
+        
 
-    disp(length(Times))
-
-    for i = 1:length(Times)
+        %% file load
+%         expID = "00A";
+%         
+%     %     IMU_and_Leap_filename = sprintf("Data/Session04_RawData/Raw_IMU_and_Leap_Exp_%s.mat", expID);
+%         IMU_and_Leap_filename = sprintf("Data/Session03_RawData/IMU_Leap_Data/Raw_IMU_and_Leap_Exp_%s.mat",expID);
+%     
+%         IMU_Readings = load(IMU_and_Leap_filename).IMU_readings;
+%         Leap_Readings = load(IMU_and_Leap_filename).Leap_readings;
+%         Times = load(IMU_and_Leap_filename).Times;
+%         
     
-        % get frames
-        [IMU_reading, Leap_reading] = get_frame(i, IMU_Readings, Leap_Readings);
-
-        % extract IMU data
-        [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length);
-
-        % extract Leap data
-        [palm_pos, leap_exists] = manipulate_leap(Leap_reading);
-
-
-        if (imu_exists + leap_exists == 2)
-            
-            % transform baton tip
-            transformed_baton_tip_pos = [baton_tip_pos(1) + palm_pos(1); baton_tip_pos(2) + palm_pos(2); baton_tip_pos(3) + palm_pos(3)];
-
-            transformed_baton_tip_pos_raw_array(:,(successful_loops+smooth_starting_buffer)) = transformed_baton_tip_pos;
-            raw_array_times(successful_loops+smooth_starting_buffer) = Times(i);
-
-            cols_with_all_zeros = find(all(transformed_baton_tip_pos_raw_array(:, (smooth_starting_buffer+1):end)==0), 1);
-
-            % smooth the raw data array
-            transformed_baton_tip_pos_smoothed_array = smoothdata(transformed_baton_tip_pos_raw_array(:,1:(cols_with_all_zeros+smooth_starting_buffer)),2,"gaussian",10);
-            smoothed_array_times = raw_array_times(1:(cols_with_all_zeros+smooth_starting_buffer));
-            fprintf("size of array: %d, ", length(transformed_baton_tip_pos_smoothed_array))
-            fprintf("smoothed_array_times: %d, ", length(smoothed_array_times))
-
-            % only take non zero bits
-            firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first')+smooth_starting_buffer;
-            lastNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'last');
-            lastNonzeroBatonSmoothIndex = lastNonzeroBatonSmoothIndex - smooth_starting_buffer;
-
-            fprintf("size of nonzero array: %d \n", length(transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex)));
-
-            successful_loops = successful_loops + 1;
-            
+        %% inputs
+        % how long is your baton?
+        baton_length = 120;
+    
+        % this is high for now
+        data_array_size = 10000;
+    
+        % smooth data buffer
+        smooth_starting_buffer = 10;
+    
+        % initialise arrays
+        transformed_baton_tip_pos_raw_array = zeros(3,data_array_size);
+        raw_array_times = zeros(1,data_array_size);
+        
+        % loop counters
+        successful_loops = 1;
+        all_loops = 0;
+    
+        disp(length(Times))
+    
+        for i = 1:length(Times)
+        
+            % get frames
+            [IMU_reading, Leap_reading] = get_frame(i, IMU_Readings, Leap_Readings);
+    
+            % extract IMU data
+            [baton_tip_pos, imu_exists] = manipulate_imu(IMU_reading, FUSE, baton_length);
+    
+            % extract Leap data
+            [palm_pos, leap_exists] = manipulate_leap(Leap_reading);
+    
+    
+            if (imu_exists + leap_exists == 2)
+                
+                % transform baton tip
+                transformed_baton_tip_pos = [baton_tip_pos(1) + palm_pos(1); baton_tip_pos(2) + palm_pos(2); baton_tip_pos(3) + palm_pos(3)];
+    
+                transformed_baton_tip_pos_raw_array(:,(successful_loops+smooth_starting_buffer)) = transformed_baton_tip_pos;
+                raw_array_times(successful_loops+smooth_starting_buffer) = Times(i);
+    
+                cols_with_all_zeros = find(all(transformed_baton_tip_pos_raw_array(:, (smooth_starting_buffer+1):end)==0), 1);
+    
+                % smooth the raw data array
+                transformed_baton_tip_pos_smoothed_array = smoothdata(transformed_baton_tip_pos_raw_array(:,1:(cols_with_all_zeros+smooth_starting_buffer)),2,"gaussian",10);
+                smoothed_array_times = raw_array_times(1:(cols_with_all_zeros+smooth_starting_buffer));
+                fprintf("size of array: %d, ", length(transformed_baton_tip_pos_smoothed_array))
+                fprintf("smoothed_array_times: %d, ", length(smoothed_array_times))
+    
+                % only take non zero bits
+                firstNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'first')+smooth_starting_buffer;
+                lastNonzeroBatonSmoothIndex = find(transformed_baton_tip_pos_smoothed_array(1,:), 1, 'last');
+                lastNonzeroBatonSmoothIndex = lastNonzeroBatonSmoothIndex - smooth_starting_buffer;
+    
+                fprintf("size of nonzero array: %d \n", length(transformed_baton_tip_pos_smoothed_array(1,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex)));
+    
+                successful_loops = successful_loops + 1;
+                
+            end
+    
+            all_loops = all_loops + 1;
         end
-
-        all_loops = all_loops + 1;
+    
+    
+        clear t;
+    
+        save_system_data(expID, transformed_baton_tip_pos_smoothed_array, smoothed_array_times, firstNonzeroBatonSmoothIndex, lastNonzeroBatonSmoothIndex)
     end
-
-
-    clear t;
-
-    save_system_data(expID, transformed_baton_tip_pos_smoothed_array, smoothed_array_times, firstNonzeroBatonSmoothIndex, lastNonzeroBatonSmoothIndex)
-
 
 end
 
@@ -91,13 +117,15 @@ function save_system_data(expID, transformed_baton_tip_pos_smoothed_array, smoot
     transformed_baton_tip_pos_smoothed_array = transformed_baton_tip_pos_smoothed_array(:,firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex);
     smoothed_array_times = smoothed_array_times(firstNonzeroBatonSmoothIndex:lastNonzeroBatonSmoothIndex);
 
-    timeFirst = datetime(smoothed_array_times(1),'ConvertFrom','epochtime','TicksPerSecond',1000,'Format', 'MM/dd/yy HH:mm:ss.SSS' );
-    timeLast = datetime(smoothed_array_times(end),'ConvertFrom','epochtime','TicksPerSecond',1000,'Format', 'MM/dd/yy HH:mm:ss.SSS');
-%     timeFirst = datetime(smoothed_array_times(1), 'convertfrom', 'posixtime', 'Format', 'MM/dd/yy HH:mm:ss.SSS');
-%     timeLast = datetime(smoothed_array_times(end), 'convertfrom', 'posixtime', 'Format', 'MM/dd/yy HH:mm:ss.SSS');
-
-    disp(timeFirst)
-    disp(timeLast)
+    if (~isempty(smoothed_array_times))
+        timeFirst = datetime(smoothed_array_times(1),'ConvertFrom','epochtime','TicksPerSecond',1000,'Format', 'MM/dd/yy HH:mm:ss.SSS' );
+        timeLast = datetime(smoothed_array_times(end),'ConvertFrom','epochtime','TicksPerSecond',1000,'Format', 'MM/dd/yy HH:mm:ss.SSS');
+    %     timeFirst = datetime(smoothed_array_times(1), 'convertfrom', 'posixtime', 'Format', 'MM/dd/yy HH:mm:ss.SSS');
+    %     timeLast = datetime(smoothed_array_times(end), 'convertfrom', 'posixtime', 'Format', 'MM/dd/yy HH:mm:ss.SSS');
+    
+        disp(timeFirst)
+        disp(timeLast)
+    end
 
 %     fprintf("First timestamp: %s\n", timeFirst);
 %     fprintf("Last timestamp: %s\n", timeLast);

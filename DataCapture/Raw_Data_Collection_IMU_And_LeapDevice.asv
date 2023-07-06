@@ -18,9 +18,9 @@ function Raw_Data_Collection_IMU_And_LeapDevice
     FUSE = imufilter('SampleRate',sample_rate);
 
     %% data array size - how many milliseconds?
-    desiredTimeInMillis = 12000;
+    desiredTimeInMillis = 10000;
 
-    ExperimentCode = "53C";
+    ExperimentCode = "31B";
 
 
     %% calcs

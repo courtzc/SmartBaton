@@ -2,108 +2,62 @@
 function Step3_Scale_ResampledTrackingData_AbsoluteTime
       
     miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-        "Data\Session02_ManipulatedData\TrackingData_AbsoluteTime_Resampled\*.mat";
-    %     Motive_filename = sprintf("Data/Session02_ManipulatedData/TrackingData_AbsoluteTime_Resampled/Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_AbsoluteTimeCut_Resampled.mat",expID);
-    
-    
+        "Data\Session03_ManipulatedData\TrackingData_SimpleCentroid_CutWithAbsolute\*.csv";
+
     theFiles = dir(miniPattern);
     
     for i = 1:length(theFiles)
         %% input desired experiment
         filenameCheck = theFiles(i).name;
-        expID = filenameCheck(15:17);
+        expID = filenameCheck(5:7);
         
         %% calcs
         % get the file of the desired experiment
         fprintf(1, 'Now reading %s\n', expID)
-        trackingDataShortFileName = sprintf("Session02_Exp_%s_BBaton_BlanksRemoved_SimpleCentroid_AbsoluteTimeCut_Resampled", expID);
-        trackingDataFileName = sprintf("Data/Session02_ManipulatedData/TrackingData_AbsoluteTime_Resampled/%s.mat", trackingDataShortFileName);
-    %     rawTrackingData = readmatrix(trackingDataFileName);
-        trackingData = load(trackingDataFileName, 'resampled_tracking_data').resampled_tracking_data;
-    
-    
-    % Data/Session02_IMU_Data_Cut/Raw_IMU_and_Leap_Exp_%s_cut.mat
-        TimesFileName = sprintf("Data/Session02_IMU_Data_Cut/Raw_IMU_and_Leap_Exp_%s_cut.mat", expID);
-    %     timesData = load(TimesFileName).Times;
-         leapData = load(TimesFileName).Leap_readings_cut;
-    %     desiredLength = length(timesData);
-    %     lastDataPointTime = timesData(end);
-        largest_leap_distance = get_largest_leap_distance(leapData);
-        largest_motive_distance = get_largest_motive_distance(trackingData);
-    
-        scalingFactor = largest_leap_distance / largest_motive_distance; % Calculate the scaling factor
-    
-        scaled_tracking_data = trackingData * scalingFactor; % Scale up ArrayB
-    
-        % save new data
-        fileName = sprintf("Data/Session02_ManipulatedData/TrackingData_AbsoluteTime_Resampled_Scaled/%s_Scaled.mat", trackingDataShortFileName);
-        save(fileName, 'scaled_tracking_data');
-    
-    %     
-    %     % cut the motive data to finish at the same time as the other data
-    %     trackingDataTimes = trackingData(:,1);
-    %     indices = find(trackingDataTimes > lastDataPointTime);
-    %     
-    %     if ~isempty(indices)
-    %         finalDataPoint = indices(1)
-    %         trackingData = trackingData(1:finalDataPoint, :);
-    %     end
-    %     
-    %     % resample the motive data
-    %     newTime = linspace(min(trackingData(:, 1)), max(trackingData(:, 1)), desiredLength);
-    %     
-    %     resampled_tracking_data = zeros(desiredLength, 4);
-    %     
-    %     for col = 2:4
-    %         resampled_tracking_data(:, col) = interp1(trackingData(:, 1), trackingData(:, col), newTime, 'linear');
-    %     end
-    %     
-    %     resampled_tracking_data(:, 1) = newTime;
-    %     
-    %     figure();
-    %     hold on;
-    %     plot(rawTrackingData(:,2), rawTrackingData(:,3), 'Color','b')
-    %     plot(resampled_tracking_data(:,2), resampled_tracking_data(:,3), 'Color','r')
-    %     legend('rawTrackingData', 'resampled_tracking_data')
-    %     
-    %     save new data
-    %     fileName = sprintf("Data/Session02_ManipulatedData/TrackingDataTime_Resampled/%s_Resampled.mat", trackingDataShortFileName);
-    %     save(fileName, 'resampled_tracking_data');
+        trackingDataShortFileName = sprintf("EXP_%s_BBaton_BlanksRemoved_SimpleCentroid_CutWithAbsolute", expID);
+        trackingDataFileName = sprintf("Data/Session03_ManipulatedData/TrackingData_SimpleCentroid_CutWithAbsolute/%s.csv", trackingDataShortFileName);
+        rawTrackingData = readmatrix(trackingDataFileName);
+        trackingData = rawTrackingData;
+        lengthData = length(trackingData(:,2));
+        tXYZ_Motive = zeros(lengthData,5);
+
+        TimesFileName = sprintf("Data/Session03_ManipulatedData/Time_SmoothBatonPosition/Time_Smooth_Baton_Pos_%s.mat", expID);
+        try 
+            system_data = load(TimesFileName).tXYZ_System;
+
+            largest_system_distance = get_largest_system_distance(system_data);
+            largest_motive_distance = get_largest_motive_distance(trackingData);
+        
+            scalingFactor = largest_system_distance / largest_motive_distance; % Calculate the scaling factor
+        
+            tXYZ_Motive(:,3:5) = trackingData(:,3:5) * scalingFactor; 
+            tXYZ_Motive(:,1:2) = trackingData(:,1:2); 
+        
+            fprintf(1, 'Now saving %s\n', expID)
+            fileName = sprintf("Data/Session03_ManipulatedData/TrackingData_SimpleCentroid_CutWithAbsolute_Scaled/%s_Scaled.mat", trackingDataShortFileName);
+            save(fileName, 'tXYZ_Motive');
+        catch
+        end
+
+
     end
 end
 
-function largest_leap_distance = get_largest_leap_distance (Leap_readings)
+function largest_system_distance = get_largest_system_distance (System_readings)
 
-    largest_leap_distance = 0;
-    numberOfCoords = length(Leap_readings);
-
-    palm_pos = zeros(numberOfCoords, 3);
-
-    for k = 1 : numberOfCoords
-        hands = Leap_readings{k}.hands;
-        if (~isempty(hands))
-            palm = hands(1).palm;
-            palm_pos(k,:) = (palm.position);
-        else
-            palm_pos(k,:) = [0,0,0];
-        end
-    end
-
-    x = palm_pos(:,1);
-    y = palm_pos(:,2);
-    z = palm_pos(:,3);
+    numberOfCoords = length(System_readings(:,1));
+    x = System_readings(:,2);
+    y = System_readings(:,3);
+    z = System_readings(:,4);
 
 
+    largest_system_distance = 0;
 
     for i = 1 : numberOfCoords
-        if (~isequal(palm_pos(i,:), [0, 0, 0]))
-            for j = i+1 : numberOfCoords
-                if (~isequal(palm_pos(j,:), [0, 0, 0]))
-                    distance = sqrt((x(i)-x(j))^2 + (y(i)-y(j))^2 + (z(i)-z(j))^2);
-                    if distance > largest_leap_distance
-                        largest_leap_distance = distance;
-                    end
-                end
+        for j = i+1 : numberOfCoords
+            distance = sqrt((x(i)-x(j))^2 + (y(i)-y(j))^2 + (z(i)-z(j))^2);
+            if distance > largest_system_distance
+                largest_system_distance = distance;
             end
         end
     end
@@ -113,9 +67,9 @@ end
 function largest_motive_distance = get_largest_motive_distance (Motive_readings)
 
     numberOfCoords = length(Motive_readings(:,1));
-    x = Motive_readings(:,2);
-    y = Motive_readings(:,3);
-    z = Motive_readings(:,4);
+    x = Motive_readings(:,3);
+    y = Motive_readings(:,4);
+    z = Motive_readings(:,5);
 
 
     largest_motive_distance = 0;

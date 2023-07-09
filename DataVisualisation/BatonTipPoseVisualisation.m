@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 batonTipData = load('DataManipulation\BatonTipPose_08_03_23.mat').batonTipData;
 myGuidController = GUID_Controller;
 close all;

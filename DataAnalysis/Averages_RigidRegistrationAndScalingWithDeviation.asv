@@ -4,26 +4,26 @@ close all;
 
 
 movingFile = "Data\\Session01_ManipulatedData\\"+ ...
-    "SavedCycles_Resampled\\Session01_Exp_B1_001_SavedCycle_2_Resampled.mat";
+    "SavedCycles_Resampled\\Session01_Exp_A1_All_Resampled_Average.mat";
 
-expMovement = 2; % knees is 2 etc.
-fixedOne = 6;
-isSaving = 1; % t/f boolean
+expMovement = 1; % knees is 2 etc.
+fixedOne = 2;
+isSaving = 0; % t/f boolean
 
 letters = {'A', 'B', 'C', 'D', 'E', 'F'};
 movements = {'No Extraneous Movement (Control)', 'Extraneous Knee Movement', 'Extraneous Waist Movement', 'Extraneous Feet Movement', 'Extraneous Wrist Movement', 'Extraneous Upper Arm Movement'};
-movementsShort = {'Control', 'Knees', 'Waist', 'Feet', 'Wrist', 'Upper Arm'};
+movementsShort = {'None (Control)', 'Knees', 'Waist', 'Feet', 'Wrist', 'Upper Arm'};
 
 positions = [
 [87.75,36.75,450,500];
-[537.75,36.75,450,500];
-[989.25,36.75,450,500];
+[537.75,354,450,500];
+[989.25,354,450,500];
 [87.75,36.75,450,500];
 [538.5,36.75,450,500];
 [989.25,36.75,450,500];
 ];
 
-for j = fixedOne:fixedOne
+for j = 1:1
     
     fixedFile = "Data\\Session01_ManipulatedData\\"+ ...
         "SavedCycles_Resampled\\Session01_Exp_"+letters{j}+"1_All_Resampled_Average.mat";
@@ -31,7 +31,7 @@ for j = fixedOne:fixedOne
     
     
     % get in data
-    moving = load(movingFile).tXYZ;
+    moving = load(movingFile).tXYZ_Average;
     fixed = load(fixedFile).tXYZ_Average;
     
     
@@ -39,7 +39,7 @@ for j = fixedOne:fixedOne
     fixed = fixed(:,2:4);
     
     % Perform rigid registration comparison on those 3D arrays
-    tform = pcregistericp(pointCloud(moving),pointCloud(fixed));
+    tform = pcregistericp(pointCloud(moving),pointCloud(fixed))
     
     % Scale the 'moving' points to the size of the 'fixed' points
     scaleFactor = mean(sqrt(sum(fixed.^2,2))) / mean(sqrt(sum(moving.^2,2)));
@@ -100,7 +100,7 @@ for j = fixedOne:fixedOne
     plot3(beat3(:, 1), beat3(:, 2), beat3(:, 3),'Color', beat3Colour, 'LineWidth', 2.5);
     plot3(beat4(:, 1), beat4(:, 2), beat4(:, 3),'Color', beat4Colour,'LineWidth', 2.5);
 
-    entry1 = sprintf("Ref. (%s) all beats", movementsShort{j});
+    entry1 = sprintf("Ref. (Control) all beats");
     entry2 = sprintf("Exp. (%s) Beat 1", movementsShort{expMovement});
     entry3 = sprintf("Exp. (%s) Beat 2", movementsShort{expMovement});
     entry4 = sprintf("Exp. (%s) Beat 3", movementsShort{expMovement});
@@ -139,8 +139,6 @@ for j = fixedOne:fixedOne
     ylim_vals = get(ax, 'YLim');  % Get y-axis limits
     ax.XAxis.TickLength = [0 0];
     ax.YAxis.TickLength = [0 0];
-    yticklabels2 = get(ax, 'YTickLabel');
-    set(ax, 'YTickLabel', yticklabels2, 'FontSize', 12)
 %     label_2.Position(1) = label_2.Position(1) - 40;
     ytick = get(ax, 'YTick');  % Get y-axis tick locations
     
@@ -168,56 +166,55 @@ for j = fixedOne:fixedOne
     % set title
 %         titleName = sprintf(". \nKnees against %s", movements{j});
     
-    niceTitle{1} = {sprintf("Experimental '%s'\nagainst reference (calculated average)\n'%s'", movements{expMovement}, movements{j})};
-%     niceTitle{2} = {sprintf("Experimental bar against\nreference (calculated average) bar.")};
-%     niceTitle{3} = {sprintf("Experimental extraneous movement: %s", movementsShort{expMovement})};
-%     niceTitle{4} = {sprintf("Reference average extraneous movement: %s", movementsShort{j})};
+
+    niceTitle{1} = {sprintf("Registration and Deviation")};
+    niceTitle{2} = {sprintf("%s (average trajectory) against \n Control (average trajectory).", movements{expMovement})};
+    niceTitle{3} = {sprintf("Average extraneous movement: %s", movementsShort{expMovement})};
+    niceTitle{4} = {sprintf("Reference average extraneous movement: %s", movementsShort{j})};
 
     % overall title
-    axes('Position', [0, 0.85, 1, 0.18] ) ;
+    axes('Position', [0, 0.82, 1, 0.18] ) ;
     set( gca, 'Color', 'None', 'XColor', 'White', 'YColor', 'White' ) ;
-    text( 0.5, 0.2, niceTitle{1}, 'FontName', 'Arial', 'FontSize', 18', 'FontWeight', 'bold', ...
+    text( 0.5, 0.65, niceTitle{1}, 'FontName', 'Arial', 'FontSize', 18', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
-%     text( 0.5, 0.2, niceTitle{2}, 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'normal', ...
+    text( 0.5, 0.2, niceTitle{2}, 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'normal', ...
+      'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
+%     text( 0.5, 0.17, niceTitle{3}, 'FontName', 'Arial', 'FontSize', 10', 'FontWeight', 'normal', ...
 %       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
-%     text( 0.5, 0.2, niceTitle{3}, 'FontName', 'Arial', 'FontSize', 10', 'FontWeight', 'normal', ...
-%       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
-%     text( 0.5, 0.05, niceTitle{4}, 'FontName', 'Arial', 'FontSize', 10', 'FontWeight', 'normal', ...
+%     text( 0.5, 0.02, niceTitle{4}, 'FontName', 'Arial', 'FontSize', 10', 'FontWeight', 'normal', ...
 %       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
 
     % regstration title
     axes('Position', [0, 0.71, 1, 0.1] ) ;
     set( gca, 'Color', 'None', 'XColor', 'None', 'YColor', 'None','Box', 'off' ) ;
-    text( 0.5, 0.6, "Registration", 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'bold', ...
+    text( 0.5, 0.6, "Registration", 'FontName', 'Arial', 'FontSize', 14', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ; 
     
     % deviation title
     axes('Position', [0, 0.22, 1, 0.1] ) ;
     set( gca, 'Color', 'None', 'XColor', 'None', 'YColor', 'None','Box', 'off' ) ;
-    text( 0.5, 0.6, "Deviation", 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'bold', ...
+    text( 0.5, 0.6, "Deviation", 'FontName', 'Arial', 'FontSize', 14', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
-
-      graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against %s", movements{expMovement}, movements{j});
-
+    
+    
+  
 end
+
+% get graph details
+graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against Control", movements{expMovement});
+dataset = sprintf("reference: Session01_ManipulatedData/SavedCycles_Resampled/Session01_ExpA1_All_Resampled_Average. data: Session01_ManipulatedData/SavedCycles_Resampled/%s", movingFileShort);
+folderToSaveIn = 'Visualisations/RegistrationAnalysis';   % Your destination folder
 
 
 
 if (isSaving)
-    % get graph details
-    % graphDetails = 'Rigid Registration Scaling and Deviation.';
-    
-    dataset = sprintf("reference: Session01_ManipulatedData/SavedCycles_Resampled/Session01_ExpA1_All_Resampled_Average. data: Session01_ManipulatedData/SavedCycles_Resampled/%s", movingFileShort);
-    folderToSaveIn = 'Visualisations/RegistrationAnalysis';   % Your destination folder
-    
     % add to GUID directory
     descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, dataset, folderToSaveIn, datetime('now'));
+    descriptionToUse = sprintf("Details: %s. Script used: Averages_RigidRegistrationAndScalingWithDeviation.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, dataset, folderToSaveIn, datetime('now'));
     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
-
     % save all figures
     FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
     for k = 1:length(FigList)
-%         graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against %s", movements{expMovement}, movements{k});
         myGuidController.saveFigures(graphDetails, GUIDToAppend, FigList(k), folderToSaveIn);
         GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     end
@@ -226,7 +223,7 @@ end
 function rearrangedArray = rearrangePoints(points)
     % Find the highest XY point
     [~, maxIdx] = max(points(:,2));
-%     fprintf("highest point for moving %f",maxIdx)
+    fprintf("highest point for moving %f",maxIdx)
     
     % Rearrange the array
     rearrangedArray = circshift(points, [-maxIdx, 0]);

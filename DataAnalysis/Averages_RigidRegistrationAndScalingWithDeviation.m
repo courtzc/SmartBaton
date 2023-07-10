@@ -3,30 +3,32 @@ myGuidController = GUID_Controller;
 close all;
 
 
-movingFile = "Data\\Session01_ManipulatedData\\"+ ...
-    "SavedCycles_Resampled\\Session01_Exp_A1_All_Resampled_Average.mat";
 
-expMovement = 1; % knees is 2 etc.
+expMovement = 6; % knees is 2 etc.
 
-isSaving = 0; % t/f boolean
+isSaving =1; % t/f boolean
 
 letters = {'A', 'B', 'C', 'D', 'E', 'F'};
-movements = {'No Movement (Control)', 'Knee Movement', 'Waist Movement', 'Feet Movement', 'Wrist Movement', 'Upper Arm Movements'};
+movements = {'No Extraneous Movement (Control)', 'Extraneous Knee Movement', 'Extraneous Waist Movement', 'Extraneous Feet Movement', 'Extraneous Wrist Movement', 'Extraneous Upper Arm Movement'};
 movementsShort = {'None (Control)', 'Knees', 'Waist', 'Feet', 'Wrist', 'Upper Arm'};
 
 positions = [
 [87.75,36.75,450,500];
-[537.75,354,450,500];
-[989.25,354,450,500];
+[537.75,36.75,450,500];
+[989.25,36.75,450,500];
 [87.75,36.75,450,500];
 [538.5,36.75,450,500];
 [989.25,36.75,450,500];
 ];
 
-for j = 1:1
+for j = expMovement:expMovement
+
+
+    movingFile = "Data\\Session01_ManipulatedData\\"+ ...
+    "SavedCycles_Resampled\\Session01_Exp_"+letters{j}+"1_All_Resampled_Average.mat";
     
     fixedFile = "Data\\Session01_ManipulatedData\\"+ ...
-        "SavedCycles_Resampled\\Session01_Exp_"+letters{j}+"1_All_Resampled_Average.mat";
+        "SavedCycles_Resampled\\Session01_Exp_A1_All_Resampled_Average.mat";
     
     
     
@@ -78,8 +80,8 @@ for j = 1:1
     set(gcf,'units','points','position',positions(j,:))
 
     % Define subplot positions as percentages
-    pos1 = [0.1 0.32 0.8 0.4];  % [left bottom width height]
-    pos2 = [0.15 0.05 0.7 0.2];
+    pos1 = [0.1 0.37 0.8 0.4];  % [left bottom width height]
+    pos2 = [0.15 0.08 0.7 0.2];
     
     % E84D8A = pink, 64C5EB = blue, 7F58AF = purple, FEB326 = orange
     beat1Colour = '#E84D8A';
@@ -101,10 +103,10 @@ for j = 1:1
     plot3(beat4(:, 1), beat4(:, 2), beat4(:, 3),'Color', beat4Colour,'LineWidth', 2.5);
 
     entry1 = sprintf("Ref. (Control) all beats");
-    entry2 = sprintf("Exp. (%s) Beat 1", movementsShort{expMovement});
-    entry3 = sprintf("Exp. (%s) Beat 2", movementsShort{expMovement});
-    entry4 = sprintf("Exp. (%s) Beat 3", movementsShort{expMovement});
-    entry5 = sprintf("Exp. (%s) Beat 4", movementsShort{expMovement});
+    entry2 = sprintf("Avg. %s Beat 1", movementsShort{expMovement});
+    entry3 = sprintf("Avg. %s Beat 2", movementsShort{expMovement});
+    entry4 = sprintf("Avg. %s Beat 3", movementsShort{expMovement});
+    entry5 = sprintf("Avg. %s Beat 4", movementsShort{expMovement});
 
     legend({entry1, entry2, entry3, entry4, entry5});
 %     legend({'Ref. all beats', 'Exp. Beat 1', 'Exp. Beat 2', 'Exp. Beat 3', 'Exp. Beat 4'});
@@ -119,7 +121,7 @@ for j = 1:1
     plot((q2:q3), beat3dists, 'Color',beat3Colour, 'LineWidth', 2.5)
     plot((q3:numElements), beat4dists, 'Color',beat4Colour, 'LineWidth', 2.5)
     
-    ylimMax = 0.5;
+    ylimMax = 0.4;
     ylim([0,ylimMax]);
     yticks([(ylimMax*0.17),(ylimMax*0.5),(ylimMax*0.85)])
 %     title("Deviation")
@@ -141,7 +143,8 @@ for j = 1:1
     ax.YAxis.TickLength = [0 0];
 %     label_2.Position(1) = label_2.Position(1) - 40;
     ytick = get(ax, 'YTick');  % Get y-axis tick locations
-    
+    yticklabels2 = get(ax, 'YTickLabel');
+    set(ax, 'YTickLabel', yticklabels2, 'FontSize', 12)
     % Define the ranges for the colored areas
     top_third = [ylim_vals(2) * (2/3), ylim_vals(2)];  % Red area
     middle_third = [ylim_vals(2)/3, ylim_vals(2) * (2/3)];  % Yellow area
@@ -167,17 +170,18 @@ for j = 1:1
 %         titleName = sprintf(". \nKnees against %s", movements{j});
     
 
-    niceTitle{1} = {sprintf("Registration and Deviation")};
-    niceTitle{2} = {sprintf("%s (average trajectory) against \n Control (average trajectory).", movements{expMovement})};
-    niceTitle{3} = {sprintf("Average extraneous movement: %s", movementsShort{expMovement})};
-    niceTitle{4} = {sprintf("Reference average extraneous movement: %s", movementsShort{j})};
+%     niceTitle{1} = {sprintf("Registration and Deviation")};
+    niceTitle{1} = {sprintf("'%s' average trajectory", movements{expMovement})};
+    niceTitle{2} = {sprintf("Against 'No Extraneous Movement (Control)' average trajectory")};
+%     niceTitle{3} = {sprintf("Average extraneous movement: %s", movementsShort{expMovement})};
+%     niceTitle{4} = {sprintf("Reference average extraneous movement: %s", movementsShort{j})};
 
     % overall title
-    axes('Position', [0, 0.82, 1, 0.18] ) ;
+    axes('Position', [0, 0.87, 1, 0.13] ) ;
     set( gca, 'Color', 'None', 'XColor', 'White', 'YColor', 'White' ) ;
-    text( 0.5, 0.65, niceTitle{1}, 'FontName', 'Arial', 'FontSize', 18', 'FontWeight', 'bold', ...
+    text( 0.5, 0.65, niceTitle{1}, 'FontName', 'Arial', 'FontSize', 17', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
-    text( 0.5, 0.2, niceTitle{2}, 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'normal', ...
+    text( 0.5, 0.2, niceTitle{2}, 'FontName', 'Arial', 'FontSize', 15', 'FontWeight', 'normal', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
 %     text( 0.5, 0.17, niceTitle{3}, 'FontName', 'Arial', 'FontSize', 10', 'FontWeight', 'normal', ...
 %       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
@@ -185,13 +189,13 @@ for j = 1:1
 %       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
 
     % regstration title
-    axes('Position', [0, 0.71, 1, 0.1] ) ;
+    axes('Position', [0, 0.76, 1, 0.1] ) ;
     set( gca, 'Color', 'None', 'XColor', 'None', 'YColor', 'None','Box', 'off' ) ;
     text( 0.5, 0.6, "Registration", 'FontName', 'Arial', 'FontSize', 14', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ; 
     
     % deviation title
-    axes('Position', [0, 0.22, 1, 0.1] ) ;
+    axes('Position', [0, 0.25, 1, 0.1] ) ;
     set( gca, 'Color', 'None', 'XColor', 'None', 'YColor', 'None','Box', 'off' ) ;
     text( 0.5, 0.6, "Deviation", 'FontName', 'Arial', 'FontSize', 14', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
@@ -201,7 +205,7 @@ for j = 1:1
 end
 
 % get graph details
-graphDetails = 'Rigid Registration Scaling and Deviation.';
+graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against Control", movements{expMovement});
 dataset = sprintf("reference: Session01_ManipulatedData/SavedCycles_Resampled/Session01_ExpA1_All_Resampled_Average. data: Session01_ManipulatedData/SavedCycles_Resampled/%s", movingFileShort);
 folderToSaveIn = 'Visualisations/RegistrationAnalysis';   % Your destination folder
 
@@ -211,12 +215,12 @@ if (isSaving)
     % add to GUID directory
     descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, dataset, folderToSaveIn, datetime('now'));
     descriptionToUse = sprintf("Details: %s. Script used: Averages_RigidRegistrationAndScalingWithDeviation.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, dataset, folderToSaveIn, datetime('now'));
-    GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+%     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     % save all figures
     FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
     for k = 1:length(FigList)
+            GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
         myGuidController.saveFigures(graphDetails, GUIDToAppend, FigList(k), folderToSaveIn);
-        GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
     end
 end
 

@@ -26,6 +26,9 @@ for j = expMovement:expMovement
 
     movingFile = "Data\\Session01_ManipulatedData\\"+ ...
     "SavedCycles_Resampled\\Session01_Exp_"+letters{j}+"1_All_Resampled_Average.mat";
+
+%     movingFile = "Data\\Session01_ManipulatedData\\"+ ...
+%     "SavedCycles_Resampled\\Session01_Exp_A1_005_SavedCycle_3_Resampled.mat";
     
     fixedFile = "Data\\Session01_ManipulatedData\\"+ ...
         "SavedCycles_Resampled\\Session01_Exp_A1_All_Resampled_Average.mat";
@@ -33,6 +36,7 @@ for j = expMovement:expMovement
     
     
     % get in data
+%     moving = load(movingFile).tXYZ_Average;
     moving = load(movingFile).tXYZ_Average;
     fixed = load(fixedFile).tXYZ_Average;
     
@@ -53,6 +57,9 @@ for j = expMovement:expMovement
     movingRegScaled = movingReg.Location;
     % shift movingRegScaled and fixed so the array starts at the highest point:
     movingRegScaledShifted = rearrangePoints(movingRegScaled);
+    translation_vector = [-0.15; 0; 0]; % Translation of 20cm lower on the Y axis
+    translated_points = movingRegScaledShifted.' + translation_vector;
+    movingRegScaledShifted = translated_points.';
     fixedShifted = rearrangePoints(fixed);
     
     
@@ -103,10 +110,10 @@ for j = expMovement:expMovement
     plot3(beat4(:, 1), beat4(:, 2), beat4(:, 3),'Color', beat4Colour,'LineWidth', 2.5);
 
     entry1 = sprintf("Ref. (Control) all beats");
-    entry2 = sprintf("Avg. %s Beat 1", movementsShort{expMovement});
-    entry3 = sprintf("Avg. %s Beat 2", movementsShort{expMovement});
-    entry4 = sprintf("Avg. %s Beat 3", movementsShort{expMovement});
-    entry5 = sprintf("Avg. %s Beat 4", movementsShort{expMovement});
+    entry2 = sprintf("%s Beat 1", movementsShort{expMovement});
+    entry3 = sprintf("%s Beat 2", movementsShort{expMovement});
+    entry4 = sprintf("%s Beat 3", movementsShort{expMovement});
+    entry5 = sprintf("%s Beat 4", movementsShort{expMovement});
 
     legend({entry1, entry2, entry3, entry4, entry5});
 %     legend({'Ref. all beats', 'Exp. Beat 1', 'Exp. Beat 2', 'Exp. Beat 3', 'Exp. Beat 4'});
@@ -171,6 +178,7 @@ for j = expMovement:expMovement
     
 
 %     niceTitle{1} = {sprintf("Registration and Deviation")};
+%     niceTitle{1} = {sprintf("Random experimental bar, 'No Extraneous Movement'")};
     niceTitle{1} = {sprintf("'%s' average trajectory", movements{expMovement})};
     niceTitle{2} = {sprintf("Against 'No Extraneous Movement (Control)' average trajectory")};
 %     niceTitle{3} = {sprintf("Average extraneous movement: %s", movementsShort{expMovement})};

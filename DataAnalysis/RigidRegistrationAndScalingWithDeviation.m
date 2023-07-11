@@ -34,16 +34,21 @@ for j = fixedOne:fixedOne
     moving = load(movingFile).tXYZ;
     fixed = load(fixedFile).tXYZ_Average;
     
-    
+%     moving_size = ;
+
+
     moving = moving(:,2:4);
     fixed = fixed(:,2:4);
+
+    fprintf("system points size: %.4f\n", get_largest_distance(moving));
+    fprintf("motive points size: %.4f\n", get_largest_distance(fixed));
     
     % Perform rigid registration comparison on those 3D arrays
     tform = pcregistericp(pointCloud(moving),pointCloud(fixed));
     
     % Scale the 'moving' points to the size of the 'fixed' points
     scaleFactor = mean(sqrt(sum(fixed.^2,2))) / mean(sqrt(sum(moving.^2,2)));
-    moving = moving * scaleFactor;
+%     moving = moving * scaleFactor;
     
     % transform the 'moving' points
     movingReg = pctransform(pointCloud(moving),tform);
@@ -53,6 +58,8 @@ for j = fixedOne:fixedOne
     movingRegScaledShifted = rearrangePoints(movingRegScaled);
     fixedShifted = rearrangePoints(fixed);
     
+    fprintf("system points size: %.4f\n", get_largest_distance(movingRegScaledShifted));
+    fprintf("motive points size: %.4f\n", get_largest_distance(fixedShifted));
     
     % get the distances
     dists = vecnorm(fixedShifted - movingRegScaledShifted, 2, 2);
@@ -101,10 +108,10 @@ for j = fixedOne:fixedOne
     plot3(beat4(:, 1), beat4(:, 2), beat4(:, 3),'Color', beat4Colour,'LineWidth', 2.5);
 
     entry1 = sprintf("Ref. (%s) all beats", movementsShort{j});
-    entry2 = sprintf("Exp. (%s) Beat 1", movementsShort{expMovement});
-    entry3 = sprintf("Exp. (%s) Beat 2", movementsShort{expMovement});
-    entry4 = sprintf("Exp. (%s) Beat 3", movementsShort{expMovement});
-    entry5 = sprintf("Exp. (%s) Beat 4", movementsShort{expMovement});
+    entry2 = sprintf("System Beat 1", movementsShort{expMovement});
+    entry3 = sprintf("System Beat 2", movementsShort{expMovement});
+    entry4 = sprintf("System Beat 3", movementsShort{expMovement});
+    entry5 = sprintf("System Beat 4", movementsShort{expMovement});
 
     legend({entry1, entry2, entry3, entry4, entry5});
 %     legend({'Ref. all beats', 'Exp. Beat 1', 'Exp. Beat 2', 'Exp. Beat 3', 'Exp. Beat 4'});
@@ -168,7 +175,7 @@ for j = fixedOne:fixedOne
     % set title
 %         titleName = sprintf(". \nKnees against %s", movements{j});
     
-    niceTitle{1} = {sprintf("Experimental '%s'\nagainst reference (calculated average)\n'%s'", movements{expMovement}, movements{j})};
+    niceTitle{1} = {sprintf("Experimental random bar from System \nagainst reference (calculated average)\n'%s'", movements{j})};
 %     niceTitle{2} = {sprintf("Experimental bar against\nreference (calculated average) bar.")};
 %     niceTitle{3} = {sprintf("Experimental extraneous movement: %s", movementsShort{expMovement})};
 %     niceTitle{4} = {sprintf("Reference average extraneous movement: %s", movementsShort{j})};
@@ -197,7 +204,7 @@ for j = fixedOne:fixedOne
     text( 0.5, 0.6, "Deviation", 'FontName', 'Arial', 'FontSize', 16', 'FontWeight', 'bold', ...
       'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
 
-      graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against %s", movements{expMovement}, movements{j});
+      graphDetails = sprintf("Rigid Registration Scaling and Deviation System against %s", movements{j});
 
 end
 
@@ -212,14 +219,15 @@ if (isSaving)
     
     % add to GUID directory
     descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, dataset, folderToSaveIn, datetime('now'));
-    GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+%     GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
 
     % save all figures
     FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
     for k = 1:length(FigList)
+        GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
 %         graphDetails = sprintf("Rigid Registration Scaling and Deviation %s against %s", movements{expMovement}, movements{k});
         myGuidController.saveFigures(graphDetails, GUIDToAppend, FigList(k), folderToSaveIn);
-        GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+        
     end
 end
 
@@ -230,4 +238,25 @@ function rearrangedArray = rearrangePoints(points)
     
     % Rearrange the array
     rearrangedArray = circshift(points, [-maxIdx, 0]);
+end
+
+function largest_distance = get_largest_distance(points)
+
+    numberOfCoords = length(points(:,1));
+    x = points(:,1);
+    y = points(:,2);
+    z = points(:,3);
+
+
+    largest_distance = 0;
+
+    for i = 1 : numberOfCoords
+        for j = i+1 : numberOfCoords
+            distance = sqrt((x(i)-x(j))^2 + (y(i)-y(j))^2 + (z(i)-z(j))^2);
+            if distance > largest_distance
+                largest_distance = distance;
+            end
+        end
+    end
+
 end

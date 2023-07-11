@@ -2,7 +2,7 @@
 
 % Get all files of the jth feature
 miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-    "Data\Session02_SimpleCentroidTrackingDataTime\Session02_Exp_11B*.csv";
+    "Data\Session04_ManipulatedData\SavedCycles\RelativeTime_Smooth_Baton_Pos_B1_021_System_SavedCycle_3.mat";
 
 % collect the files
 theFiles = dir(miniPattern);
@@ -13,9 +13,9 @@ for k = 1:length(theFiles)
    
     % read in cycle from file
     currFileName = theFiles(k).name;
-    withFolders = "Data\Session02_SimpleCentroidTrackingDataTime\"+currFileName;
+    withFolders = "Data\Session04_ManipulatedData\SavedCycles\"+currFileName;
     fprintf(1, 'Now reading %s\n', currFileName)
-    cycle = readmatrix(withFolders);
+    cycle = load(withFolders).tXYZ_System;
 
     % start the time index from zero
     cycle(:,1) = [cycle(:,1)]-cycle(1,1);
@@ -24,8 +24,10 @@ for k = 1:length(theFiles)
     t = array2timetable(cycle(:, 2:end), 'rowTimes', datetime(0, 0, 0, 0, 0, cycle(:, 1), 'Format', 'ss.SSS'));
     
     % resample!
-    desiredInterval = 0.002;
-    barLength76bpm = 3.157900;
+%     desiredInterval = 0.002;
+%     barLength76bpm = 3.157900;
+    desiredInterval = 0.002*2;
+    barLength76bpm = 3.157900*2;
     newtimes = datetime(0, 0, 0, 0, 0, 0) : duration(0, 0, desiredInterval) : datetime(0, 0, 0, 0, 0, barLength76bpm);
     newtimes.Format = 'ss.SSS';
     newt = retime(t, newtimes, 'linear');
@@ -43,10 +45,12 @@ for k = 1:length(theFiles)
     
 
     % concatenate new data
-    tXYZ = [t, X, Y, Z];
+    tXYZ_System = [t, X, Y, Z];
     
     % save new data
-    fileName = sprintf("Data\\Session02_ManipulatedData\\TrackingDataTime_Resampled\\%s_Resampled.mat", currFileName(1:end-4));
-    save(fileName, 'tXYZ');
+    figure
+    plot3(tXYZ_System(:,2),tXYZ_System(:,3),tXYZ_System(:,4))
+    fileName = sprintf("Data/Session04_ManipulatedData/SavedCycles_Resampled/%s_Resampled.mat", currFileName(1:end-4));
+    save(fileName, 'tXYZ_System');
 
 end

@@ -5,7 +5,7 @@ function Step3_IndividualPathCyclesTimeThreshold
     
     close all
     miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
-        "Data\Session04_ManipulatedData\RelativeTime_SystemPos\*.mat";
+        "Data\Session04_ManipulatedData\RelativeTime_SystemPos\*B1_023*.mat";
         
     % collect the files
     theFiles = dir(miniPattern);
@@ -19,7 +19,7 @@ function Step3_IndividualPathCyclesTimeThreshold
     % get the file name + read in the file
         simpleFileName = theFiles(k).name;
 %         filenameCheck = theFiles(i).name;
-        expID = simpleFileName(15:17);
+%         expID = simpleFileName(34:36);
         fullFileName = fullfile(theFiles(k).folder, simpleFileName);
         
         fprintf(1, 'Now reading %s\n', simpleFileName);
@@ -45,7 +45,7 @@ function Step3_IndividualPathCyclesTimeThreshold
     
         % bar time thresholds in seconds, at 76bpm
         barTimeLimit = [3.1579, 6.3158, 9.4737, 12.6316, 15.7895, 18.9474, 22.1053, 25.2632, 28.4211, 31.5790, 34.7369, 37.8948,41.0527, 44.2106,47.3685,	50.5264,	53.6843,	56.8422,	60.0001,	63.158,	66.3159,	69.4738,	72.6317];
-        
+        barTimeLimit = barTimeLimit * 2;
         while(~endOfDataset)
             
             % start new plot
@@ -73,14 +73,14 @@ function Step3_IndividualPathCyclesTimeThreshold
             % save if part of good dataset
             cycleEndIndex = index;
     
-            if (i > 3 && i < 9)
-                clear tXYZ;
-    %             sprintf("cycleStartIndex: %d. cycleEndIndex: %d.",cycleStartIndex, cycleEndIndex)
-                tXYZ = PosData(cycleStartIndex:cycleEndIndex, :);
-                fileName = sprintf("Data\\Session04_ManipulatedData\\SavedCycles\\%sSavedCycle_%d.mat",simpleFileName(1:21), l);
-                save(fileName, 'tXYZ');
-                l = l+1;
-            end
+%             if (i > 1 && i < 5)
+            clear tXYZ_System;
+%             sprintf("cycleStartIndex: %d. cycleEndIndex: %d.",cycleStartIndex, cycleEndIndex)
+            tXYZ_System = PosData(cycleStartIndex:cycleEndIndex, :);
+            fileName = sprintf("Data\\Session04_ManipulatedData\\SavedCycles\\%s_SavedCycle_%d.mat",simpleFileName(1:(end-4)), l);
+            save(fileName, 'tXYZ_System');
+            l = l+1;
+%             end
         
             % move on to the new cycle
             endOfCycle = false;

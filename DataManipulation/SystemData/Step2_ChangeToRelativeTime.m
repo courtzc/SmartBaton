@@ -1,9 +1,9 @@
 function Step2_ChangeToRelativeTime
 
-    expID = "A1_001_System";
+    expID = "B1_023_System";
     fileToLoad = sprintf("Data/Session04_ManipulatedData/AbsoluteTime_SystemPos/AbsoluteTime_Smooth_Baton_Pos_%s.mat", expID);
     AbsolutePos = load(fileToLoad).tXYZ_System;
-
+    fprintf(1, 'Now reading %s\n', expID)
     tXYZ_System = AbsolutePos;
 
     % get first time, make it a date time, then set first time to 0.000

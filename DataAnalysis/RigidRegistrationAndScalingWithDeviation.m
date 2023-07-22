@@ -4,10 +4,10 @@ close all;
 
 
 movingFile = "Data\\Session01_ManipulatedData\\"+ ...
-    "SavedCycles_Resampled\\Session01_Exp_B1_001_SavedCycle_2_Resampled.mat";
+    "SavedCycles_Resampled\\Session01_Exp_B1_001_SavedCycle_1_Resampled.mat";
 
-expMovement = 2; % knees is 2 etc.
-fixedOne = 6;
+expMovement =2 ; % knees is 2 etc.
+fixedOne = 4;
 isSaving = 1; % t/f boolean
 
 letters = {'A', 'B', 'C', 'D', 'E', 'F'};
@@ -126,7 +126,7 @@ for j = fixedOne:fixedOne
     plot((q2:q3), beat3dists, 'Color',beat3Colour, 'LineWidth', 2.5)
     plot((q3:numElements), beat4dists, 'Color',beat4Colour, 'LineWidth', 2.5)
     
-    ylimMax = 0.5;
+    ylimMax = 0.4;
     ylim([0,ylimMax]);
     yticks([(ylimMax*0.17),(ylimMax*0.5),(ylimMax*0.85)])
 %     title("Deviation")

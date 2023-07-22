@@ -1,8 +1,8 @@
 % Get all files of the jth feature
 theFiles = [];
 
-for j = 1:3
-    miniPattern = "C:\Users\Court\source\repos\ThesisProject\" + ...
+for j = 1:4
+    miniPattern = "C:\Users\Courtney\source\repos\ThesisProject\" + ...
         "Data\Session01_ManipulatedData\SavedCycles_Resampled\" + ...
         "Session01_Exp_F1_001_SavedCycle_"+j+"*.mat";
     
@@ -26,6 +26,8 @@ end
 
 tXYZ_Average = mean(A,3);
 figure;
+hold on;
+axis equal;
 plot(tXYZ_Average(:,2), tXYZ_Average(:,3))
 
 % save new data

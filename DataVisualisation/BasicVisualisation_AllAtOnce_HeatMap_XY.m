@@ -41,11 +41,12 @@ for j = 1:1
     
     % collect the files
     theFiles = dir(miniPattern);
-    
-    figure;
+    pos1 = [0.1 0.1 0.8 0.8]; 
 
     for k = 1:length(theFiles)
     
+        figure('Color','white');
+        set(gcf,'units','points','position',[87.75,36.75,500,500])
         % get the file name + read in the file
         simpleFileName = theFiles(k).name;
         fullFileName = fullfile(theFiles(k).folder, simpleFileName);
@@ -54,12 +55,15 @@ for j = 1:1
         PosData = readmatrix(fullFileName);
         
         % set up subplot
-        subplot(2,3,k)
+%         subplot(2,3,k)
+
+
+        subplot('Position', pos1, 'Color', 'white');
         hold on
         axis equal;
         xlim([-1.2,0.1])
         ylim([0.8,2.2])
-        title (habits(k))
+%         title (habits(k))
         c = colorbar;
         colormap('turbo')
         c.Ticks = [0 0.5 1];
@@ -86,23 +90,34 @@ for j = 1:1
            plot3(PosData((i:i+1),1), PosData((i:i+1),2), PosData((i:i+1),3), 'color', colourMap(pointColour,:))
 
         end
+
+        axes('Position', [0, 0.87, 1, 0.13] ) ;
+            niceTitle{1} = {sprintf("%s", habits(k))};
+%     niceTitle{2} = {sprintf("Against 'No Extraneous Movement (Control)' average trajectory")};
+            set( gca, 'Color', 'None', 'XColor', 'None', 'YColor', 'None','Box', 'off' ) ;
+    text( 0.5, 0.6, niceTitle{1}, 'FontName', 'Arial', 'FontSize', 20, 'FontWeight', 'bold', ...
+      'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ; 
+%         text( 0.5, 0.2, niceTitle{2}, 'FontName', 'Arial', 'FontSize', 15', 'FontWeight', 'normal', ...
+%           'HorizontalAlignment', 'Center', 'VerticalAlignment', 'middle' ) ;
+
+        % get graph details
+        graphDetails = sprintf('60bpm_mf_44path_%s',  habits(k));
+        
+        % save in GUID directory, get GUID
+        folderToSaveIn = 'Visualisations/Session01_SimpleCentroid_Figures';   % Your destination folder
+        descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
+        GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
+        
+        % add GUID to title 
+        figureSaveTitles{k} = sprintf('%s_%s.fig', graphDetails, GUIDToAppend);
+        pngSaveTitles{k} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
+
     
     end
 
-    % get graph details
-    graphDetails = sprintf('60bpm_mf_44path_%s_AllHabits',  features(j));
-    
-    % save in GUID directory, get GUID
-    folderToSaveIn = 'Visualisations/Session01_SimpleCentroid_Figures';   % Your destination folder
-    descriptionToUse = sprintf("Details: %s. Script used: %s.  Dataset used: %s. File Location: %s. Date Generated: %s", graphDetails, mfilename, fullFileName, folderToSaveIn, datetime('now'));
-    GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
-    
-    % add GUID to title 
-    figureSaveTitles{j} = sprintf('%s_%s.fig', graphDetails, GUIDToAppend);
-    pngSaveTitles{j} = sprintf('%s_%s.png', graphDetails, GUIDToAppend);
 
     % set title
-    sgtitle("76bpm, conducting at mezzo forte (mf), with assorted extraneous movements.")
+%     sgtitle("76bpm, conducting at mezzo forte (mf), with assorted extraneous movements.")
 
 %     sgtitle(strrep(graphDetails, '_', ' '))
 
@@ -114,10 +129,12 @@ FigList = findobj(allchild(0), 'flat', 'Type', 'figure');
 
 % save all open figures
 for iFig = 1:length(FigList)
+    
   FigHandle = FigList(iFig);
   FigName   = figureSaveTitles{iFig};
   pngName   = pngSaveTitles{iFig};
   fprintf("now saving: %s\n", FigName)
   saveas(FigHandle, fullfile(folderToSaveIn, FigName));
   saveas(FigHandle, fullfile(folderToSaveIn, pngName));
+  GUIDToAppend = myGuidController.updateGuidDirectory(descriptionToUse).currGUID;
 end

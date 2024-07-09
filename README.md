@@ -1,6 +1,6 @@
-﻿# ThesisProject
+﻿# SmartBaton
 
-Thesis Project for courtzc.
+The software required for a smart conducting baton, using UltraLeap skeletal technology and IMU calculations, to track, display, and analyse conducting movements.
 
 ## Contents
 
@@ -20,10 +20,3 @@ See the [data viz readme](/DataVisualisation/DataVisualisation_README.md) for ho
 
 ### Visualisations
 This folder contains images and .figs of data (both raw and manipulated).
-
-
-
-
-## What's next
-let's get these devices sending me info wirelessly.
-
